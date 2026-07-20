@@ -823,6 +823,8 @@ let currentSuggestions = [];
 let currentSuggestionIndex = 0;
 let restaurantRerollCount = 0;
 let mealRerollCount = 0;
+let seenPlaceIdsInSession = new Set();
+let seenItemIdsForCurrentPlace = new Set();
 let pollTimer = null;
 let currentPollCode = null;
 let isPollCreator = false;
@@ -1116,6 +1118,8 @@ $("#btn-suggest").addEventListener("click", async ()=>{
     currentSuggestionIndex = 0;
     restaurantRerollCount = 0;
     mealRerollCount = 0;
+    seenPlaceIdsInSession = new Set([currentSuggestions[0].place_id]);
+    seenItemIdsForCurrentPlace = new Set([currentSuggestions[0].item_id]);
 
     const actualMealName = currentSuggestions[0].item_name;
 
@@ -1222,46 +1226,55 @@ function renderSuggestionCard(people){
     clickPrompt.textContent = isHidden ? "👆 Click restaurant name to hide details" : "👇 Click restaurant name to reveal recommendation";
   });
 
-  // Wire up reroll restaurant (finds next suggestion with a different place_id)
+  // Wire up reroll restaurant (finds next suggestion with a place_id that has NOT been seen in this session)
   const rerollBtn = $("#btn-reroll-suggestion");
-  rerollBtn.addEventListener("click", () => {
+  rerollBtn.addEventListener("click", async () => {
     if (restaurantRerollCount >= 3) return;
-    const currentPlaceId = currentSuggestions[currentSuggestionIndex].place_id;
-    let nextIdx = (currentSuggestionIndex + 1) % currentSuggestions.length;
-    while (currentSuggestions[nextIdx].place_id === currentPlaceId && nextIdx !== currentSuggestionIndex) {
-      nextIdx = (nextIdx + 1) % currentSuggestions.length;
+    
+    let nextIdx = -1;
+    for (let i = 0; i < currentSuggestions.length; i++) {
+      const cand = currentSuggestions[i];
+      if (!seenPlaceIdsInSession.has(cand.place_id)) {
+        nextIdx = i;
+        break;
+      }
     }
-    if (nextIdx === currentSuggestionIndex) {
-      Modal.alert("No other restaurants found in the suggestion list!");
+
+    if (nextIdx === -1) {
+      await Modal.alert("All unique restaurants fitting your budget have already been shown! No other un-visited restaurants available.");
       return;
     }
+
     currentSuggestionIndex = nextIdx;
+    seenPlaceIdsInSession.add(currentSuggestions[nextIdx].place_id);
+    seenItemIdsForCurrentPlace = new Set([currentSuggestions[nextIdx].item_id]);
     restaurantRerollCount++;
     mealRerollCount = 0; // Reset meal reroll count when restaurant changes!
     renderSuggestionCard(people);
   });
 
-  // Wire up reroll meal (finds next suggestion with the same place_id but different item_id)
+  // Wire up reroll meal (finds next suggestion with the same place_id but an unseen item_id)
   const rerollMealBtn = $("#btn-reroll-meal");
   rerollMealBtn.addEventListener("click", async () => {
     if (mealRerollCount >= 3) return;
     const currentPlaceId = currentSuggestions[currentSuggestionIndex].place_id;
-    const currentItemId = currentSuggestions[currentSuggestionIndex].item_id;
-    let nextIdx = (currentSuggestionIndex + 1) % currentSuggestions.length;
-    let found = false;
-    while (nextIdx !== currentSuggestionIndex) {
-      const cand = currentSuggestions[nextIdx];
-      if (cand.place_id === currentPlaceId && cand.item_id !== currentItemId) {
-        currentSuggestionIndex = nextIdx;
-        found = true;
+    
+    let nextIdx = -1;
+    for (let i = 0; i < currentSuggestions.length; i++) {
+      const cand = currentSuggestions[i];
+      if (cand.place_id === currentPlaceId && !seenItemIdsForCurrentPlace.has(cand.item_id)) {
+        nextIdx = i;
         break;
       }
-      nextIdx = (nextIdx + 1) % currentSuggestions.length;
     }
-    if (!found) {
-      await Modal.alert("No other meal combinations fit your budget at this restaurant!");
+
+    if (nextIdx === -1) {
+      await Modal.alert("No other unique meal combinations fit your budget at this restaurant!");
       return;
     }
+
+    currentSuggestionIndex = nextIdx;
+    seenItemIdsForCurrentPlace.add(currentSuggestions[nextIdx].item_id);
     mealRerollCount++;
     renderSuggestionCard(people);
     $("#item-details-container").style.display = "block";
