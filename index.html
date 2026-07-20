@@ -713,7 +713,10 @@
     <input type="number" id="custom-meal-people" value="1" min="1" style="width: 100%; margin-bottom: 12px;" />
 
     <label>💰 Total Cost / Amount</label>
-    <input type="number" id="custom-meal-amount" placeholder="e.g. 150" min="0" style="width: 100%; margin-bottom: 20px;" />
+    <input type="number" id="custom-meal-amount" placeholder="e.g. 150" min="0" style="width: 100%; margin-bottom: 12px;" />
+
+    <label>🎯 Budget Allocated</label>
+    <input type="number" id="custom-meal-budget" placeholder="e.g. 200 (optional)" min="0" style="width: 100%; margin-bottom: 20px;" />
     
     <div style="display: flex; gap: 12px; justify-content: flex-end;">
       <button id="custom-meal-btn-cancel" class="claim-btn" style="background: var(--prize-red); color: #fff; margin-top: 0; box-shadow: 0 3px 0 #8c0012; font-weight: 800;">Cancel</button>
@@ -911,6 +914,12 @@ $("#modal-btn-ok").addEventListener("click", () => {
 $("#modal-btn-cancel").addEventListener("click", () => {
   if(Modal.resolve) Modal.resolve(false);
 });
+$("#modal-input").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    $("#modal-btn-ok").click();
+  }
+});
 
 // Edit Item Modal logic
 const EditItemModal = {
@@ -972,6 +981,15 @@ $("#edit-item-btn-save").addEventListener("click", () => {
   }
 });
 
+$all("#edit-item-modal input").forEach(inp => {
+  inp.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      $("#edit-item-btn-save").click();
+    }
+  });
+});
+
 // Custom Meal Modal Logic
 const CustomMealModal = {
   el: $("#custom-meal-modal"),
@@ -979,12 +997,14 @@ const CustomMealModal = {
   itemInput: $("#custom-meal-item"),
   peopleInput: $("#custom-meal-people"),
   amountInput: $("#custom-meal-amount"),
+  budgetInput: $("#custom-meal-budget"),
 
   show() {
     this.placeInput.value = "";
     this.itemInput.value = "";
     this.peopleInput.value = "1";
     this.amountInput.value = "";
+    this.budgetInput.value = "";
     this.el.style.display = "flex";
   },
   hide() {
@@ -1005,6 +1025,7 @@ $("#custom-meal-btn-save").addEventListener("click", async () => {
   const itemName = CustomMealModal.itemInput.value.trim();
   const people = parseInt(CustomMealModal.peopleInput.value);
   const amount = parseFloat(CustomMealModal.amountInput.value);
+  const budget = parseFloat(CustomMealModal.budgetInput.value) || amount;
 
   if(!placeName || !itemName || isNaN(people) || isNaN(amount)){
     Modal.alert("Please fill in all fields!");
@@ -1025,6 +1046,7 @@ $("#custom-meal-btn-save").addEventListener("click", async () => {
         item_name: itemName,
         people: people,
         amount: amount,
+        budget: budget,
         who: who
       })
     });
@@ -1041,6 +1063,15 @@ $("#custom-meal-btn-save").addEventListener("click", async () => {
   } catch (err) {
     Modal.alert("Error connecting to server.");
   }
+});
+
+$all("#custom-meal-modal input").forEach(inp => {
+  inp.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      $("#custom-meal-btn-save").click();
+    }
+  });
 });
 
 // ---------------- Tabs ----------------
@@ -1099,6 +1130,63 @@ $("#btn-join-poll").addEventListener("click", joinGroupPoll);
 
 // ---------------- Suggestions ----------------
 
+function runSlotReelAnimation(people) {
+  $("#spin-wrap").classList.add("show");
+  $("#results").innerHTML = "";
+
+  const reel = $("#slot-reel");
+  reel.style.opacity = "1";
+  reel.style.transition = "none";
+  reel.style.transform = "translateY(0px)";
+
+  const actualMealName = currentSuggestions[0].item_name;
+  const randomItems = [];
+  if (itemsCache && itemsCache.length > 0) {
+    for (let i = 0; i < 11; i++) {
+      const randomIt = itemsCache[Math.floor(Math.random() * itemsCache.length)];
+      randomItems.push(randomIt.name);
+    }
+  } else {
+    randomItems.push("Pizza", "Burger", "Biryani", "Noodles", "Salad", "Tacos", "Pasta", "Sushi", "Waffles", "Ice Cream", "Momos");
+  }
+  randomItems.push(actualMealName);
+
+  reel.innerHTML = randomItems.map(name => `<div class="slot-item">🍔 ${name}</div>`).join("");
+
+  let currentScroll = 0;
+  const itemHeight = 70;
+  const scrollDuration = 2000; 
+  const ticks = randomItems.length - 1;
+  const tickInterval = scrollDuration / ticks;
+  
+  let tickCount = 0;
+  const scrollTimer = setInterval(() => {
+    if (tickCount < ticks) {
+      currentScroll -= itemHeight;
+      reel.style.transform = `translateY(${currentScroll}px)`;
+      AudioFX.tick();
+      tickCount++;
+    } else {
+      clearInterval(scrollTimer);
+      
+      setTimeout(() => {
+        reel.style.transition = "opacity 0.25s ease-out";
+        reel.style.opacity = "0";
+        
+        setTimeout(() => {
+          $("#spin-wrap").classList.remove("show");
+          $("#btn-suggest").disabled = false;
+          renderSuggestionCard(people);
+          AudioFX.success();
+          if(window.confetti){
+            confetti({ particleCount: 140, spread: 90, origin: { y: 0.6 } });
+          }
+        }, 250);
+      }, 400);
+    }
+  }, tickInterval);
+}
+
 $("#btn-suggest").addEventListener("click", async ()=>{
   const budget = parseFloat($("#in-budget").value);
   const people = parseInt($("#in-people").value);
@@ -1116,87 +1204,72 @@ $("#btn-suggest").addEventListener("click", async ()=>{
   }
 
   $("#btn-suggest").disabled = true;
-  $("#spin-wrap").classList.add("show");
-  $("#results").innerHTML = "";
 
-  const reel = $("#slot-reel");
-  reel.style.opacity = "1";
-  reel.style.transition = "none";
-  reel.style.transform = "translateY(0px)";
-  reel.innerHTML = '<div class="slot-item">🎲 Contacting kitchen...</div>';
+  // 1. Check for Upgrade Candidate FIRST!
+  let acceptedUpgrade = false;
+  let upgradeData = null;
+  try {
+    const upRes = await fetch(API + "/api/suggest/upgrade", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ budget, people, preference, additional_info, area, variety, who, concurrency_control })
+    });
+    if (upRes.ok) {
+      upgradeData = await upRes.json();
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  if (upgradeData && upgradeData.upgrade) {
+    const up = upgradeData.upgrade;
+    const confirmMsg = `Your current budget is ₹${upgradeData.current_budget}.\n\nIf you add ₹${upgradeData.extra_needed} more (Total Budget ₹${upgradeData.new_budget}), you can enjoy:\n\n✨ ${up.item_name} @ ${up.place_name}\n\nWould you like to upgrade your budget to ₹${upgradeData.new_budget} and get these new suggestions?`;
+
+    acceptedUpgrade = await Modal.confirm(confirmMsg, "💡 UPGRADE BUDGET SUGGESTION");
+  }
+
+  const effectiveBudget = (acceptedUpgrade && upgradeData) ? upgradeData.new_budget : budget;
+  if (acceptedUpgrade && upgradeData) {
+    $("#in-budget").value = effectiveBudget;
+  }
 
   try{
     const r = await fetch(API+"/api/suggest", {
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({budget, people, preference, additional_info, area, variety, who, concurrency_control, count:40})
+      body: JSON.stringify({budget: effectiveBudget, people, preference, additional_info, area, variety, who, concurrency_control, count:40})
     });
     const data = await r.json();
 
     if(!r.ok){
-      $("#spin-wrap").classList.remove("show");
       $("#btn-suggest").disabled = false;
       $("#results").innerHTML = `<div class="empty">😬 ${data.detail || "Something went wrong"}</div>`;
       return;
     }
 
     currentSuggestions = data.suggestions;
+
+    // If upgrade was accepted, make sure the exact upgraded meal is #1 at index 0!
+    if (acceptedUpgrade && upgradeData && upgradeData.upgrade) {
+      const upItem = upgradeData.upgrade;
+      const existingIdx = currentSuggestions.findIndex(c => c.place_id === upItem.place_id && c.item_id === upItem.item_id);
+      if (existingIdx !== -1) {
+        const [exactUp] = currentSuggestions.splice(existingIdx, 1);
+        currentSuggestions.unshift(exactUp);
+      } else {
+        currentSuggestions.unshift(upItem);
+      }
+    }
+
     currentSuggestionIndex = 0;
     restaurantRerollCount = 0;
     mealRerollCount = 0;
     seenPlaceIdsInSession = new Set([currentSuggestions[0].place_id]);
     seenItemIdsForCurrentPlace = new Set([currentSuggestions[0].item_id]);
 
-    const actualMealName = currentSuggestions[0].item_name;
-
-    const randomItems = [];
-    if (itemsCache && itemsCache.length > 0) {
-      for (let i = 0; i < 11; i++) {
-        const randomIt = itemsCache[Math.floor(Math.random() * itemsCache.length)];
-        randomItems.push(randomIt.name);
-      }
-    } else {
-      randomItems.push("Pizza", "Burger", "Biryani", "Noodles", "Salad", "Tacos", "Pasta", "Sushi", "Waffles", "Ice Cream", "Momos");
-    }
-    randomItems.push(actualMealName);
-
-    reel.innerHTML = randomItems.map(name => `<div class="slot-item">🍔 ${name}</div>`).join("");
-
-    let currentScroll = 0;
-    const itemHeight = 70;
-    const scrollDuration = 2000; 
-    const ticks = randomItems.length - 1;
-    const tickInterval = scrollDuration / ticks;
-    
-    let tickCount = 0;
-    const scrollTimer = setInterval(() => {
-      if (tickCount < ticks) {
-        currentScroll -= itemHeight;
-        reel.style.transform = `translateY(${currentScroll}px)`;
-        AudioFX.tick();
-        tickCount++;
-      } else {
-        clearInterval(scrollTimer);
-        
-        setTimeout(() => {
-          reel.style.transition = "opacity 0.25s ease-out";
-          reel.style.opacity = "0";
-          
-          setTimeout(() => {
-            $("#spin-wrap").classList.remove("show");
-            $("#btn-suggest").disabled = false;
-            renderSuggestionCard(people);
-            AudioFX.success();
-            if(window.confetti){
-              confetti({ particleCount: 140, spread: 90, origin: { y: 0.6 } });
-            }
-          }, 250);
-        }, 400);
-      }
-    }, tickInterval);
+    runSlotReelAnimation(people);
 
   }catch(e){
-    $("#spin-wrap").classList.remove("show");
     $("#btn-suggest").disabled = false;
     $("#results").innerHTML = `<div class="empty">Could not reach the server.</div>`;
   }
@@ -1237,6 +1310,13 @@ function renderSuggestionCard(people){
                 ${suggestionLeft <= 0 ? "disabled" : ""} 
                 style="flex: 1; background: var(--deep-purple-2); color: white; border: 3px solid #000; border-radius: 10px; padding: 10px 16px; font-weight: 800; cursor: ${suggestionLeft <= 0 ? "not-allowed" : "pointer"}; box-shadow: ${suggestionLeft <= 0 ? "none" : "0 4px 0 #000"}; font-family: 'Baloo 2', sans-serif; font-size: 15px; opacity: ${suggestionLeft <= 0 ? "0.5" : "1"};">
           🔄 REROLL RESTAURANT (${suggestionLeft} left)
+        </button>
+      </div>
+
+      <div style="margin-top: 10px;">
+        <button id="btn-upgrade-suggestion" 
+                style="width: 100%; background: var(--win-green); color: #000; border: 3px solid #000; border-radius: 10px; padding: 10px 16px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 0 #000; font-family: 'Baloo 2', sans-serif; font-size: 15px;">
+          💡 ADDITIONAL SUGGESTION (UPGRADE BUDGET)
         </button>
       </div>
     </div>
@@ -1307,13 +1387,77 @@ function renderSuggestionCard(people){
     $("#click-prompt").textContent = "👆 Click restaurant name to hide details";
   });
 
+  // Wire up additional suggestion (upgrade budget)
+  $("#btn-upgrade-suggestion").addEventListener("click", async () => {
+    const budget = parseFloat($("#in-budget").value);
+    const people = parseInt($("#in-people").value);
+    const preference = $("#in-pref").value;
+    const additional_info = $("#in-notes").value;
+    const area = $("#in-area").value;
+    const variety = parseInt($("#in-variety").value);
+    const activeProfile = $("#profile-select").value;
+    const who = activeProfile === "all" ? "" : activeProfile;
+    const concurrency_control = $('input[name="concurrency_control"]:checked').value === "on";
+
+    try {
+      const res = await fetch(API + "/api/suggest/upgrade", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ budget, people, preference, additional_info, area, variety, who, concurrency_control })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        await Modal.alert(data.detail || "No upgrade suggestions found.");
+        return;
+      }
+
+      const up = data.upgrade;
+      const confirmMsg = `Your current budget is ₹${data.current_budget}.\n\nIf you add ₹${data.extra_needed} more (Total Budget ₹${data.new_budget}), you can enjoy:\n\n✨ ${up.item_name} @ ${up.place_name}\n\nWould you like to upgrade your budget to ₹${data.new_budget} and get these new suggestions?`;
+
+      const accepted = await Modal.confirm(confirmMsg, "💡 UPGRADE BUDGET SUGGESTION");
+      if (accepted) {
+        $("#in-budget").value = data.new_budget;
+        
+        // Fetch suggestions and make exact upgraded meal #1
+        const r = await fetch(API + "/api/suggest", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ budget: data.new_budget, people, preference, additional_info, area, variety, who, concurrency_control, count: 40 })
+        });
+        const sugData = await r.json();
+        if (r.ok && sugData.suggestions) {
+          currentSuggestions = sugData.suggestions;
+          const existingIdx = currentSuggestions.findIndex(c => c.place_id === up.place_id && c.item_id === up.item_id);
+          if (existingIdx !== -1) {
+            const [exactUp] = currentSuggestions.splice(existingIdx, 1);
+            currentSuggestions.unshift(exactUp);
+          } else {
+            currentSuggestions.unshift(up);
+          }
+          currentSuggestionIndex = 0;
+          restaurantRerollCount = 0;
+          mealRerollCount = 0;
+          seenPlaceIdsInSession = new Set([currentSuggestions[0].place_id]);
+          seenItemIdsForCurrentPlace = new Set([currentSuggestions[0].item_id]);
+
+          runSlotReelAnimation(people);
+        }
+      }
+    } catch (e) {
+      await Modal.alert("Error contacting recommendation engine.");
+    }
+  });
+
   // Wire up select
   const claimBtn = $("#results .claim-btn");
   claimBtn.addEventListener("click", async () => {
     claimBtn.disabled = true;
     claimBtn.textContent = "Selecting...";
     const activeProfile = $("#profile-select").value;
-    const who = activeProfile === "all" ? "MegaTron" : activeProfile;
+    let who = activeProfile;
+    if (activeProfile === "all") {
+      who = (userProfiles.length > 1 ? (await Modal.prompt("Who ate this meal?", userProfiles[0], "Select Profile") || userProfiles[0]) : userProfiles[0]);
+    }
     try {
       await fetch(API + "/api/history", {
         method: "POST",
@@ -1359,10 +1503,10 @@ function getStarsHTML(rating){
 }
 
 function populateAreas(){
-  const areas = [...new Set(placesCache.map(p => p.area).filter(a => a && a.trim() !== ""))].sort();
+  const areas = [...new Set(placesCache.map(p => (p.area || "").trim()).filter(a => a !== ""))].sort();
   const areaSelect = $("#in-area");
   if (!areaSelect) return;
-  const currentVal = areaSelect.value;
+  const currentVal = areaSelect.value.trim();
   areaSelect.innerHTML = `<option value="">Any Area</option>` + areas.map(a => `<option value="${a}">${a}</option>`).join("");
   if (areas.includes(currentVal)) {
     areaSelect.value = currentVal;
@@ -1515,14 +1659,16 @@ async function loadPlaces(){
     block.querySelectorAll(".item-row").forEach(row=>{
       const itemId = row.dataset.itemId;
       
-      // Wire up star click
+      // Wire up star click with 1-star toggle reset
       row.querySelectorAll(".star").forEach(star=>{
         star.addEventListener("click", async (e)=>{
           e.stopPropagation();
           const ratingValue = parseInt(star.dataset.value);
+          const currentRating = item.rating || 0;
+          const newRating = (currentRating === ratingValue && ratingValue === 1) ? 0 : ratingValue;
           await fetch(`${API}/api/items/${itemId}`, {
             method:"PUT", headers:{"Content-Type":"application/json"},
-            body: JSON.stringify({rating: ratingValue})
+            body: JSON.stringify({rating: newRating})
           });
           loadPlaces();
         });
@@ -1554,6 +1700,26 @@ async function loadPlaces(){
 }
 
 // ---- Inline menu-item rows on the Add Place form ----
+function updateAddPlacePairingDropdowns() {
+  const rows = Array.from($all("#np-items-wrap .new-item-row"));
+  rows.forEach((row, idx) => {
+    const pairedSelect = row.querySelector(".ni-paired");
+    if (!pairedSelect) return;
+    const currentVal = pairedSelect.value;
+    
+    let html = `<option value="">🔗 No Pair</option>`;
+    rows.forEach((otherRow, otherIdx) => {
+      if (otherIdx !== idx) {
+        const otherName = otherRow.querySelector(".ni-name").value.trim();
+        const displayName = otherName ? `+ ${otherName}` : `+ Item #${otherIdx + 1}`;
+        html += `<option value="${otherIdx}">${displayName}</option>`;
+      }
+    });
+    pairedSelect.innerHTML = html;
+    pairedSelect.value = currentVal;
+  });
+}
+
 function addItemRow(){
   const wrap = $("#np-items-wrap");
   const row = document.createElement("div");
@@ -1562,19 +1728,22 @@ function addItemRow(){
   row.innerHTML = `
     <input type="text" class="ni-name" placeholder="Item name" />
     <input type="number" class="ni-price" placeholder="Price" style="max-width:80px;" />
-    <select class="ni-cat" style="max-width:100px;">
+    <select class="ni-cat" style="max-width:90px;">
       <option value="veg">Veg</option>
       <option value="non-veg">Non-Veg</option>
       <option value="egg">Egg</option>
     </select>
-    <select class="ni-role" style="max-width:110px;">
+    <select class="ni-role" style="max-width:100px;">
       <option value="main">🍱 Main</option>
       <option value="snack">🍟 Snack</option>
       <option value="side">🥗 Side</option>
       <option value="dessert">🍨 Dessert</option>
       <option value="beverage">🥤 Drink</option>
     </select>
-    <select class="ni-tags" style="max-width:130px;">
+    <select class="ni-paired" style="max-width:110px;">
+      <option value="">🔗 No Pair</option>
+    </select>
+    <select class="ni-tags" style="max-width:100px;">
       <option value="">No tag</option>
       <option value="spicy">Spicy</option>
       <option value="sweet">Sweet</option>
@@ -1589,8 +1758,15 @@ function addItemRow(){
     </select>
     <button type="button" class="remove-item-row" style="background:none; border:2px solid #ff8b8b; color:#ff8b8b; border-radius:8px; padding:4px 10px; cursor:pointer;">✕</button>
   `;
-  row.querySelector(".remove-item-row").addEventListener("click", ()=> row.remove());
+  
+  row.querySelector(".ni-name").addEventListener("input", updateAddPlacePairingDropdowns);
+  row.querySelector(".remove-item-row").addEventListener("click", () => {
+    row.remove();
+    updateAddPlacePairingDropdowns();
+  });
+  
   wrap.appendChild(row);
+  updateAddPlacePairingDropdowns();
 }
 // start with one empty item row ready to fill in
 addItemRow();
@@ -1600,11 +1776,13 @@ $("#btn-add-place").addEventListener("click", async ()=>{
   const name = $("#np-name").value.trim();
   if(!name){ await Modal.alert("Place needs a name"); return; }
 
-  const itemRows = Array.from($all("#np-items-wrap .new-item-row")).map(row=>({
+  const itemRowsData = Array.from($all("#np-items-wrap .new-item-row")).map((row, idx) => ({
+    rowIdx: idx,
     name: row.querySelector(".ni-name").value.trim(),
     price: parseFloat(row.querySelector(".ni-price").value),
     category: row.querySelector(".ni-cat").value.trim(),
     meal_role: row.querySelector(".ni-role").value.trim(),
+    pairedRowIdx: row.querySelector(".ni-paired").value,
     tags: row.querySelector(".ni-tags").value.trim(),
   })).filter(it=> it.name && !isNaN(it.price));
 
@@ -1618,10 +1796,27 @@ $("#btn-add-place").addEventListener("click", async ()=>{
     });
     const place = await placeRes.json();
 
-    for(const it of itemRows){
-      await fetch(`${API}/api/places/${place.id}/items`, {
-        method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(it)
+    const createdItems = [];
+    for(const it of itemRowsData){
+      const res = await fetch(`${API}/api/places/${place.id}/items`, {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ name: it.name, price: it.price, category: it.category, meal_role: it.meal_role, tags: it.tags })
       });
+      const createdData = await res.json();
+      createdItems.push({ rowIdx: it.rowIdx, createdId: createdData.id, pairedRowIdx: it.pairedRowIdx });
+    }
+
+    // Link paired items
+    for(const item of createdItems){
+      if(item.pairedRowIdx !== ""){
+        const targetPaired = createdItems.find(x => x.rowIdx === parseInt(item.pairedRowIdx));
+        if(targetPaired){
+          await fetch(`${API}/api/items/${item.createdId}`, {
+            method:"PUT", headers:{"Content-Type":"application/json"},
+            body: JSON.stringify({ paired_item_id: targetPaired.createdId })
+          });
+        }
+      }
     }
 
     ["#np-name","#np-area","#np-notes"].forEach(s=>$(s).value="");
@@ -1965,7 +2160,7 @@ $("#btn-add-profile").addEventListener("click", async () => {
   if (!newName) return;
   const cleaned = newName.trim();
   if (!cleaned) return;
-  if (userProfiles.includes(cleaned)) {
+  if (userProfiles.some(p => p.toLowerCase() === cleaned.toLowerCase())) {
     await Modal.alert("Profile name already exists!");
     return;
   }
