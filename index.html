@@ -659,7 +659,21 @@
     </select>
 
     <label>🏷️ Tags</label>
-    <input type="text" id="edit-item-tags" placeholder="e.g. spicy, rice, south indian" style="width: 100%; margin-bottom: 20px;" />
+    <input type="text" id="edit-item-tags" placeholder="e.g. spicy, rice, south indian" style="width: 100%; margin-bottom: 12px;" />
+    
+    <label>🍱 Food Role / Type</label>
+    <select id="edit-item-role" style="width: 100%; margin-bottom: 12px;">
+      <option value="main">Main Course 🍱</option>
+      <option value="snack">Snack 🍟</option>
+      <option value="side">Side Dish / Complement 🥗</option>
+      <option value="dessert">Dessert 🍨</option>
+      <option value="beverage">Beverage / Drink 🥤</option>
+    </select>
+
+    <label>🔗 Mandatory Paired Item (Option B)</label>
+    <select id="edit-item-paired" style="width: 100%; margin-bottom: 20px;">
+      <option value="">None (Standalone)</option>
+    </select>
     
     <div style="display: flex; gap: 12px; justify-content: flex-end;">
       <button id="edit-item-btn-cancel" class="claim-btn" style="background: var(--prize-red); color: #fff; margin-top: 0; box-shadow: 0 3px 0 #8c0012; font-weight: 800;">Cancel</button>
@@ -905,15 +919,25 @@ const EditItemModal = {
   price: $("#edit-item-price"),
   cat: $("#edit-item-cat"),
   tags: $("#edit-item-tags"),
+  role: $("#edit-item-role"),
+  paired: $("#edit-item-paired"),
   btnCancel: $("#edit-item-btn-cancel"),
   btnSave: $("#edit-item-btn-save"),
   resolve: null,
 
-  show(item) {
+  show(item, placeItems = []) {
     this.name.value = item.name || "";
     this.price.value = item.price || "";
     this.cat.value = item.category || "veg";
     this.tags.value = item.tags || "";
+    this.role.value = item.meal_role || "main";
+
+    // Populate pairing dropdown with other items from the same restaurant
+    this.paired.innerHTML = `<option value="">None (Standalone)</option>` + 
+      placeItems.filter(other => other.id !== item.id)
+                .map(other => `<option value="${other.id}">${other.name} (₹${other.price})</option>`).join("");
+    this.paired.value = item.paired_item_id || "";
+
     this.el.style.display = "flex";
     return new Promise((resolve) => {
       this.resolve = resolve;
@@ -934,6 +958,8 @@ $("#edit-item-btn-save").addEventListener("click", () => {
   const price = parseFloat(EditItemModal.price.value);
   const category = EditItemModal.cat.value;
   const tags = EditItemModal.tags.value.trim();
+  const meal_role = EditItemModal.role.value;
+  const paired_item_id = EditItemModal.paired.value;
 
   if(!name || isNaN(price)){
     Modal.alert("Name and Price are required!");
@@ -942,7 +968,7 @@ $("#edit-item-btn-save").addEventListener("click", () => {
 
   EditItemModal.hide();
   if(EditItemModal.resolve) {
-    EditItemModal.resolve({ name, price, category, tags });
+    EditItemModal.resolve({ name, price, category, tags, meal_role, paired_item_id });
   }
 });
 
@@ -1359,6 +1385,8 @@ async function loadPlaces(){
     return;
   }
 
+  const roleLabels = { main: "🍱 Main", snack: "🍟 Snack", side: "🥗 Side", dessert: "🍨 Dessert", beverage: "🥤 Drink" };
+
   $("#places-list").innerHTML = placesCache.map(p=>{
     const items = allItems.filter(it=>it.place_id === p.id);
     const isExpanded = expandedPlaces.has(p.id);
@@ -1374,11 +1402,17 @@ async function loadPlaces(){
       
       <div class="place-details" style="display: ${isExpanded ? "block" : "none"}; margin-top: 12px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px;">
         <div class="items-container">
-          ${items.map(it=>`
+          ${items.map(it=>{
+            const roleBadge = `<span style="font-size:10px; background:rgba(255,212,71,0.2); color:var(--gold); border-radius:4px; padding:2px 5px; font-weight:800; margin-left:4px;">${roleLabels[it.meal_role || 'main'] || '🍱 Main'}</span>`;
+            const pairedItem = it.paired_item_id ? allItems.find(x => x.id === it.paired_item_id) : null;
+            const pairedBadge = pairedItem ? `<span style="font-size:10px; background:rgba(255,46,159,0.2); color:var(--hot-pink); border-radius:4px; padding:2px 5px; font-weight:800; margin-left:4px;" title="Mandatory paired item">🔗 +${pairedItem.name}</span>` : "";
+            return `
             <div class="item-row" data-item-id="${it.id}">
               <span>
                 ${it.name} 
                 <span style="opacity:.6">(${it.category||"—"})</span>
+                ${roleBadge}
+                ${pairedBadge}
                 <span class="star-rating" style="margin-left:8px; cursor:pointer;" title="Click to rate this item">
                   ${getStarsHTML(it.rating || 0)}
                 </span>
@@ -1386,12 +1420,12 @@ async function loadPlaces(){
               <span>
                 <span class="price">₹${it.price}</span>
                 <span class="row-actions">
-                  <button class="edit-item-btn" title="Edit price">✏️</button>
+                  <button class="edit-item-btn" title="Edit item">✏️</button>
                   <button class="del-item-btn" title="Delete">🗑️</button>
                 </span>
               </span>
             </div>
-          `).join("") || `<div style="font-size:13px; opacity:.6;">No items yet.</div>`}
+          `}).join("") || `<div style="font-size:13px; opacity:.6;">No items yet.</div>`}
         </div>
         <div class="small-form">
           <input type="text" class="new-item-name" placeholder="Item name" />
@@ -1486,7 +1520,8 @@ async function loadPlaces(){
         const item = itemsCache.find(it => it.id === itemId);
         if(!item) return;
 
-        const updated = await EditItemModal.show(item);
+        const placeItems = itemsCache.filter(it => it.place_id === item.place_id);
+        const updated = await EditItemModal.show(item, placeItems);
         if(!updated) return;
 
         await fetch(`${API}/api/items/${itemId}`, {
