@@ -1,0 +1,3 @@
+@echo off
+echo Opening EKVS Food Decider Frontend...
+start "" "%~dp0index.html"
