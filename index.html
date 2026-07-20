@@ -1442,6 +1442,10 @@ async function loadPlaces(){
             <option value="dessert">🍨 Dessert</option>
             <option value="beverage">🥤 Drink</option>
           </select>
+          <select class="new-item-paired" style="max-width:120px;">
+            <option value="">🔗 No Pair</option>
+            ${items.map(it => `<option value="${it.id}">+ ${it.name}</option>`).join("")}
+          </select>
           <select class="new-item-tags" style="max-width:130px;">
             <option value="">No tag</option>
             <option value="spicy">Spicy</option>
@@ -1490,11 +1494,12 @@ async function loadPlaces(){
       const price = parseFloat(block.querySelector(".new-item-price").value);
       const category = block.querySelector(".new-item-cat").value.trim();
       const meal_role = block.querySelector(".new-item-role").value.trim();
+      const paired_item_id = block.querySelector(".new-item-paired").value.trim();
       const tags = block.querySelector(".new-item-tags").value.trim();
       if(!name || !price){ await Modal.alert("Item needs a name and price"); return; }
       await fetch(`${API}/api/places/${placeId}/items`, {
         method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({name, price, category, tags, meal_role})
+        body: JSON.stringify({name, price, category, tags, meal_role, paired_item_id})
       });
       loadPlaces();
     });
