@@ -1269,8 +1269,12 @@ $("#btn-suggest").addEventListener("click", async ()=>{
     mealRerollCount = 0;
     seenPlaceIdsInSession = new Set([currentSuggestions[0].place_id]);
     seenItemIdsForCurrentPlace = new Set([currentSuggestions[0].item_id]);
+    
+    currentSuggestions[0].revealedMeals = [currentSuggestions[0]];
+    currentSuggestions[0].activeMealIndex = 0;
     revealedSuggestions = [currentSuggestions[0]];
     activeRevealedIndex = 0;
+
 
 
     runSlotReelAnimation(people);
@@ -1291,8 +1295,14 @@ function renderSuggestionCard(people){
     activeRevealedIndex = 0;
   }
   
-  const s = revealedSuggestions[activeRevealedIndex];
-  const currentPlaceId = s.place_id;
+  const activeRestaurant = revealedSuggestions[activeRevealedIndex];
+  if (!activeRestaurant.revealedMeals) {
+    activeRestaurant.revealedMeals = [activeRestaurant];
+    activeRestaurant.activeMealIndex = 0;
+  }
+  const s = activeRestaurant.revealedMeals[activeRestaurant.activeMealIndex];
+
+  const currentPlaceId = activeRestaurant.place_id;
   const availableRestaurantsLeft = new Set(
     currentSuggestions.filter(cand => !seenPlaceIdsInSession.has(cand.place_id)).map(cand => cand.place_id)
   ).size;
@@ -1300,8 +1310,8 @@ function renderSuggestionCard(people){
     currentSuggestions.filter(cand => cand.place_id === currentPlaceId && !seenItemIdsForCurrentPlace.has(cand.item_id)).map(cand => cand.item_id)
   ).size;
 
-  const mealLeft = Math.min(3 - mealRerollCount, availableMealsLeft);
-  const restaurantLeft = Math.min(3 - restaurantRerollCount, availableRestaurantsLeft);
+  const mealLeft = Math.min(3 - (activeRestaurant.revealedMeals.length - 1), availableMealsLeft);
+  const restaurantLeft = Math.min(3 - (revealedSuggestions.length - 1), availableRestaurantsLeft);
 
   const surfBarHTML = revealedSuggestions.length > 1 ? `
     <div style="margin: 14px 0 16px; text-align: center; background: rgba(0,0,0,0.06); padding: 10px; border-radius: 12px; border: 2px dashed #000;">
@@ -1329,6 +1339,32 @@ function renderSuggestionCard(people){
       </div>
     </div>
   ` : "";
+
+  const mealSurfBarHTML = activeRestaurant.revealedMeals.length > 1 ? `
+    <div style="margin: 10px 0 14px; text-align: center; background: rgba(255,255,255,0.4); padding: 8px; border-radius: 10px; border: 2px dashed var(--gold-dark);">
+      <div style="font-weight: 800; font-size: 12px; color: #000; margin-bottom: 6px;">
+        ${activeRestaurant.revealedMeals.length >= 4 ? "🏆 ALL 4 MEAL COMBOS UNLOCKED! SURF & SELECT ANY:" : `🍱 SURF UNLOCKED MEALS (${activeRestaurant.revealedMeals.length}/4):`}
+      </div>
+      <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;">
+        ${activeRestaurant.revealedMeals.map((m, mIdx) => `
+          <button class="surf-meal-tab-btn" data-midx="${mIdx}" style="
+            background: ${mIdx === activeRestaurant.activeMealIndex ? 'var(--gold)' : '#fff'};
+            color: #000;
+            border: 2px solid #000;
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: ${mIdx === activeRestaurant.activeMealIndex ? '0 3px 0 #000' : '0 1px 0 #000'};
+            font-family: 'Baloo 2', sans-serif;
+          ">
+            Meal ${mIdx + 1}
+          </button>
+        `).join('')}
+      </div>
+    </div>
+  ` : "";
   
   $("#results").innerHTML = `
     <div class="prize-card" style="text-align: center;">
@@ -1341,6 +1377,7 @@ function renderSuggestionCard(people){
       ${surfBarHTML}
 
       <div id="item-details-container" style="display: none; margin-top: 15px; border-top: 2px dashed rgba(0,0,0,0.15); padding-top: 15px;">
+        ${mealSurfBarHTML}
         <span style="font-weight:800; font-size:12px; opacity:.7;">💡 SUGGESTED MEAL</span>
         <h3 style="font-family:'Luckiest Guy', cursive; margin:5px 0 4px; font-size:24px;">${s.item_name}</h3>
         <div class="amount" style="font-family:'Luckiest Guy', cursive; font-size:30px; color:var(--prize-red); margin:8px 0 4px; text-shadow:1px 1px 0 #fff8;">₹${s.expected_amount.toFixed(0)}</div>
@@ -1380,6 +1417,16 @@ function renderSuggestionCard(people){
     });
   });
 
+  // Wire up meal surf tab buttons
+  $all(".surf-meal-tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      activeRestaurant.activeMealIndex = parseInt(btn.dataset.midx);
+      renderSuggestionCard(people);
+      $("#item-details-container").style.display = "block";
+      $("#click-prompt").textContent = "👆 Click restaurant name to hide details";
+    });
+  });
+
   // Wire up toggle
   const toggleBtn = $("#btn-toggle-restaurant");
   const detailsContainer = $("#item-details-container");
@@ -1393,7 +1440,7 @@ function renderSuggestionCard(people){
   // Wire up reroll restaurant (finds next suggestion with a place_id that has NOT been seen in this session)
   const rerollBtn = $("#btn-reroll-suggestion");
   rerollBtn.addEventListener("click", async () => {
-    if (restaurantRerollCount >= 3) {
+    if (revealedSuggestions.length >= 4) {
       await Modal.alert("You have unlocked all 4 restaurant suggestions! Use the surf tabs above to select your favorite.");
       return;
     }
@@ -1413,26 +1460,23 @@ function renderSuggestionCard(people){
     }
 
     const cand = currentSuggestions[nextIdx];
+    cand.revealedMeals = [cand];
+    cand.activeMealIndex = 0;
     seenPlaceIdsInSession.add(cand.place_id);
     seenItemIdsForCurrentPlace = new Set([cand.item_id]);
     revealedSuggestions.push(cand);
     activeRevealedIndex = revealedSuggestions.length - 1;
-    restaurantRerollCount++;
-    mealRerollCount = 0; // Reset meal reroll count for the new restaurant!
     renderSuggestionCard(people);
   });
 
   // Wire up reroll meal (finds next suggestion with the same place_id but an unseen item_id)
   const rerollMealBtn = $("#btn-reroll-meal");
   rerollMealBtn.addEventListener("click", async () => {
-    if (mealRerollCount >= 3) {
-      await Modal.alert("You have reached the 3 meal rerolls limit for this restaurant!");
+    if (activeRestaurant.revealedMeals.length >= 4) {
+      await Modal.alert("You have unlocked all 4 meal options for this restaurant! Use the meal surf tabs above to select any meal.");
       return;
     }
 
-    const activeCand = revealedSuggestions[activeRevealedIndex];
-    const currentPlaceId = activeCand.place_id;
-    
     let nextIdx = -1;
     for (let i = 0; i < currentSuggestions.length; i++) {
       const cand = currentSuggestions[i];
@@ -1449,8 +1493,8 @@ function renderSuggestionCard(people){
 
     const newCand = currentSuggestions[nextIdx];
     seenItemIdsForCurrentPlace.add(newCand.item_id);
-    revealedSuggestions[activeRevealedIndex] = newCand;
-    mealRerollCount++;
+    activeRestaurant.revealedMeals.push(newCand);
+    activeRestaurant.activeMealIndex = activeRestaurant.revealedMeals.length - 1;
     renderSuggestionCard(people);
     $("#item-details-container").style.display = "block";
     $("#click-prompt").textContent = "👆 Click restaurant name to hide details";
