@@ -842,7 +842,10 @@ let restaurantRerollCount = 0;
 let mealRerollCount = 0;
 let seenPlaceIdsInSession = new Set();
 let seenItemIdsForCurrentPlace = new Set();
+let revealedSuggestions = [];
+let activeRevealedIndex = 0;
 let pollTimer = null;
+
 let currentPollCode = null;
 let isPollCreator = false;
 let userHasVoted = false;
@@ -1266,6 +1269,9 @@ $("#btn-suggest").addEventListener("click", async ()=>{
     mealRerollCount = 0;
     seenPlaceIdsInSession = new Set([currentSuggestions[0].place_id]);
     seenItemIdsForCurrentPlace = new Set([currentSuggestions[0].item_id]);
+    revealedSuggestions = [currentSuggestions[0]];
+    activeRevealedIndex = 0;
+
 
     runSlotReelAnimation(people);
 
@@ -1280,7 +1286,12 @@ function renderSuggestionCard(people){
     $("#results").innerHTML = `<div class="empty">No suggestions found matching your budget/preference. Try raising the budget! 😬</div>`;
     return;
   }
-  const s = currentSuggestions[currentSuggestionIndex];
+  if(!revealedSuggestions || revealedSuggestions.length === 0){
+    revealedSuggestions = [currentSuggestions[0]];
+    activeRevealedIndex = 0;
+  }
+  
+  const s = revealedSuggestions[activeRevealedIndex];
   const currentPlaceId = s.place_id;
   const availableRestaurantsLeft = new Set(
     currentSuggestions.filter(cand => !seenPlaceIdsInSession.has(cand.place_id)).map(cand => cand.place_id)
@@ -1291,6 +1302,33 @@ function renderSuggestionCard(people){
 
   const mealLeft = Math.min(3 - mealRerollCount, availableMealsLeft);
   const restaurantLeft = Math.min(3 - restaurantRerollCount, availableRestaurantsLeft);
+
+  const surfBarHTML = revealedSuggestions.length > 1 ? `
+    <div style="margin: 14px 0 16px; text-align: center; background: rgba(0,0,0,0.06); padding: 10px; border-radius: 12px; border: 2px dashed #000;">
+      <div style="font-weight: 800; font-size: 13px; color: #1a0630; margin-bottom: 8px;">
+        ${revealedSuggestions.length >= 4 ? "🏆 ALL 4 RESTAURANTS UNLOCKED! SURF & SELECT ANY:" : `🧭 SURF UNLOCKED RESTAURANTS (${revealedSuggestions.length}/4):`}
+      </div>
+      <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;">
+        ${revealedSuggestions.map((item, idx) => `
+          <button class="surf-tab-btn" data-idx="${idx}" style="
+            background: ${idx === activeRevealedIndex ? 'var(--hot-pink)' : '#fff'};
+            color: ${idx === activeRevealedIndex ? '#fff' : '#000'};
+            border: 3px solid #000;
+            border-radius: 10px;
+            padding: 6px 12px;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: ${idx === activeRevealedIndex ? '0 3px 0 #000' : '0 2px 0 #000'};
+            font-family: 'Baloo 2', sans-serif;
+            transition: all 0.1s ease;
+          ">
+            ${idx + 1}. ${item.place_name}
+          </button>
+        `).join('')}
+      </div>
+    </div>
+  ` : "";
   
   $("#results").innerHTML = `
     <div class="prize-card" style="text-align: center;">
@@ -1300,6 +1338,8 @@ function renderSuggestionCard(people){
       </h2>
       <div id="click-prompt" style="font-size: 12px; font-weight: 700; opacity: 0.6; margin-bottom: 15px;">👇 Click restaurant name to reveal recommendation</div>
       
+      ${surfBarHTML}
+
       <div id="item-details-container" style="display: none; margin-top: 15px; border-top: 2px dashed rgba(0,0,0,0.15); padding-top: 15px;">
         <span style="font-weight:800; font-size:12px; opacity:.7;">💡 SUGGESTED MEAL</span>
         <h3 style="font-family:'Luckiest Guy', cursive; margin:5px 0 4px; font-size:24px;">${s.item_name}</h3>
@@ -1330,6 +1370,16 @@ function renderSuggestionCard(people){
     </div>
   `;
 
+  // Wire up surf tab buttons
+  $all(".surf-tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      activeRevealedIndex = parseInt(btn.dataset.idx);
+      renderSuggestionCard(people);
+      $("#item-details-container").style.display = "block";
+      $("#click-prompt").textContent = "👆 Click restaurant name to hide details";
+    });
+  });
+
   // Wire up toggle
   const toggleBtn = $("#btn-toggle-restaurant");
   const detailsContainer = $("#item-details-container");
@@ -1344,7 +1394,7 @@ function renderSuggestionCard(people){
   const rerollBtn = $("#btn-reroll-suggestion");
   rerollBtn.addEventListener("click", async () => {
     if (restaurantRerollCount >= 3) {
-      await Modal.alert("You have reached the 3 restaurant rerolls limit for this search!");
+      await Modal.alert("You have unlocked all 4 restaurant suggestions! Use the surf tabs above to select your favorite.");
       return;
     }
 
@@ -1358,13 +1408,15 @@ function renderSuggestionCard(people){
     }
 
     if (nextIdx === -1) {
-      await Modal.alert("All unique restaurants fitting your budget have already been shown! No other un-visited restaurants available.");
+      await Modal.alert("All unique restaurants fitting your budget have already been shown! Surf through unlocked options above.");
       return;
     }
 
-    currentSuggestionIndex = nextIdx;
-    seenPlaceIdsInSession.add(currentSuggestions[nextIdx].place_id);
-    seenItemIdsForCurrentPlace = new Set([currentSuggestions[nextIdx].item_id]);
+    const cand = currentSuggestions[nextIdx];
+    seenPlaceIdsInSession.add(cand.place_id);
+    seenItemIdsForCurrentPlace = new Set([cand.item_id]);
+    revealedSuggestions.push(cand);
+    activeRevealedIndex = revealedSuggestions.length - 1;
     restaurantRerollCount++;
     mealRerollCount = 0; // Reset meal reroll count for the new restaurant!
     renderSuggestionCard(people);
@@ -1378,7 +1430,8 @@ function renderSuggestionCard(people){
       return;
     }
 
-    const currentPlaceId = currentSuggestions[currentSuggestionIndex].place_id;
+    const activeCand = revealedSuggestions[activeRevealedIndex];
+    const currentPlaceId = activeCand.place_id;
     
     let nextIdx = -1;
     for (let i = 0; i < currentSuggestions.length; i++) {
@@ -1394,8 +1447,9 @@ function renderSuggestionCard(people){
       return;
     }
 
-    currentSuggestionIndex = nextIdx;
-    seenItemIdsForCurrentPlace.add(currentSuggestions[nextIdx].item_id);
+    const newCand = currentSuggestions[nextIdx];
+    seenItemIdsForCurrentPlace.add(newCand.item_id);
+    revealedSuggestions[activeRevealedIndex] = newCand;
     mealRerollCount++;
     renderSuggestionCard(people);
     $("#item-details-container").style.display = "block";
