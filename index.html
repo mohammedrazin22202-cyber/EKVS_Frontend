@@ -1281,18 +1281,16 @@ function renderSuggestionCard(people){
     return;
   }
   const s = currentSuggestions[currentSuggestionIndex];
-  const unseenRestaurants = new Set(
-    currentSuggestions
-      .filter(cand => !seenPlaceIdsInSession.has(cand.place_id))
-      .map(cand => cand.place_id)
-  ).size;
   const currentPlaceId = s.place_id;
-  const unseenMeals = new Set(
-    currentSuggestions
-      .filter(cand => cand.place_id === currentPlaceId && !seenItemIdsForCurrentPlace.has(cand.item_id))
-      .map(cand => cand.item_id)
+  const availableRestaurantsLeft = new Set(
+    currentSuggestions.filter(cand => !seenPlaceIdsInSession.has(cand.place_id)).map(cand => cand.place_id)
+  ).size;
+  const availableMealsLeft = new Set(
+    currentSuggestions.filter(cand => cand.place_id === currentPlaceId && !seenItemIdsForCurrentPlace.has(cand.item_id)).map(cand => cand.item_id)
   ).size;
 
+  const mealLeft = Math.min(3 - mealRerollCount, availableMealsLeft);
+  const restaurantLeft = Math.min(3 - restaurantRerollCount, availableRestaurantsLeft);
   
   $("#results").innerHTML = `
     <div class="prize-card" style="text-align: center;">
@@ -1312,14 +1310,14 @@ function renderSuggestionCard(people){
       
       <div style="display: flex; gap: 10px; margin-top: 15px;">
         <button id="btn-reroll-meal" 
-                ${unseenMeals <= 0 ? "disabled" : ""} 
-                style="flex: 1; background: var(--gold); color: #000; border: 3px solid #000; border-radius: 10px; padding: 10px 16px; font-weight: 800; cursor: ${unseenMeals <= 0 ? "not-allowed" : "pointer"}; box-shadow: ${unseenMeals <= 0 ? "none" : "0 4px 0 #000"}; font-family: 'Baloo 2', sans-serif; font-size: 15px; opacity: ${unseenMeals <= 0 ? "0.5" : "1"};">
-          🔄 REROLL MEAL (${unseenMeals} left)
+                ${mealLeft <= 0 ? "disabled" : ""} 
+                style="flex: 1; background: var(--gold); color: #000; border: 3px solid #000; border-radius: 10px; padding: 10px 16px; font-weight: 800; cursor: ${mealLeft <= 0 ? "not-allowed" : "pointer"}; box-shadow: ${mealLeft <= 0 ? "none" : "0 4px 0 #000"}; font-family: 'Baloo 2', sans-serif; font-size: 15px; opacity: ${mealLeft <= 0 ? "0.5" : "1"};">
+          🔄 REROLL MEAL (${mealLeft} left)
         </button>
         <button id="btn-reroll-suggestion" 
-                ${unseenRestaurants <= 0 ? "disabled" : ""} 
-                style="flex: 1; background: var(--deep-purple-2); color: white; border: 3px solid #000; border-radius: 10px; padding: 10px 16px; font-weight: 800; cursor: ${unseenRestaurants <= 0 ? "not-allowed" : "pointer"}; box-shadow: ${unseenRestaurants <= 0 ? "none" : "0 4px 0 #000"}; font-family: 'Baloo 2', sans-serif; font-size: 15px; opacity: ${unseenRestaurants <= 0 ? "0.5" : "1"};">
-          🔄 REROLL RESTAURANT (${unseenRestaurants} left)
+                ${restaurantLeft <= 0 ? "disabled" : ""} 
+                style="flex: 1; background: var(--deep-purple-2); color: white; border: 3px solid #000; border-radius: 10px; padding: 10px 16px; font-weight: 800; cursor: ${restaurantLeft <= 0 ? "not-allowed" : "pointer"}; box-shadow: ${restaurantLeft <= 0 ? "none" : "0 4px 0 #000"}; font-family: 'Baloo 2', sans-serif; font-size: 15px; opacity: ${restaurantLeft <= 0 ? "0.5" : "1"};">
+          🔄 REROLL RESTAURANT (${restaurantLeft} left)
         </button>
       </div>
 
@@ -1345,6 +1343,11 @@ function renderSuggestionCard(people){
   // Wire up reroll restaurant (finds next suggestion with a place_id that has NOT been seen in this session)
   const rerollBtn = $("#btn-reroll-suggestion");
   rerollBtn.addEventListener("click", async () => {
+    if (restaurantRerollCount >= 3) {
+      await Modal.alert("You have reached the 3 restaurant rerolls limit for this search!");
+      return;
+    }
+
     let nextIdx = -1;
     for (let i = 0; i < currentSuggestions.length; i++) {
       const cand = currentSuggestions[i];
@@ -1362,12 +1365,19 @@ function renderSuggestionCard(people){
     currentSuggestionIndex = nextIdx;
     seenPlaceIdsInSession.add(currentSuggestions[nextIdx].place_id);
     seenItemIdsForCurrentPlace = new Set([currentSuggestions[nextIdx].item_id]);
+    restaurantRerollCount++;
+    mealRerollCount = 0; // Reset meal reroll count for the new restaurant!
     renderSuggestionCard(people);
   });
 
   // Wire up reroll meal (finds next suggestion with the same place_id but an unseen item_id)
   const rerollMealBtn = $("#btn-reroll-meal");
   rerollMealBtn.addEventListener("click", async () => {
+    if (mealRerollCount >= 3) {
+      await Modal.alert("You have reached the 3 meal rerolls limit for this restaurant!");
+      return;
+    }
+
     const currentPlaceId = currentSuggestions[currentSuggestionIndex].place_id;
     
     let nextIdx = -1;
@@ -1386,6 +1396,7 @@ function renderSuggestionCard(people){
 
     currentSuggestionIndex = nextIdx;
     seenItemIdsForCurrentPlace.add(currentSuggestions[nextIdx].item_id);
+    mealRerollCount++;
     renderSuggestionCard(people);
     $("#item-details-container").style.display = "block";
     $("#click-prompt").textContent = "👆 Click restaurant name to hide details";
