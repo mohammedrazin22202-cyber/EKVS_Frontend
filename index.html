@@ -475,19 +475,21 @@
       </select>
 
       <label>🧭 Adventurous Level</label>
-      <div style="display: flex; align-items: center; gap: 10px; margin: 5px 0 15px;">
-        <span style="font-size: 12px; font-weight: 800; opacity: 0.7;">Safe 🛡️</span>
-        <input type="range" id="in-variety" min="0" max="2" value="1" style="
-          flex: 1;
-          height: 8px;
-          border-radius: 5px;
-          background: #d3d3d3;
-          outline: none;
-          accent-color: var(--gold);
-          cursor: pointer;
-        " />
-        <span style="font-size: 12px; font-weight: 800; opacity: 0.7;">Wild 🦁</span>
+      <div class="radio-group" style="margin: 5px 0 15px;">
+        <label class="radio-option">
+          <input type="radio" name="variety" value="0" />
+          <span>Safe 🛡️</span>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="variety" value="1" checked />
+          <span>Medium ⚖️</span>
+        </label>
+        <label class="radio-option">
+          <input type="radio" name="variety" value="2" />
+          <span>Wild 🦁</span>
+        </label>
       </div>
+
 
       <label>🔀 Concurrency Control (7-day restaurant cool-off)</label>
       <div class="radio-group" style="margin: 5px 0 15px;">
@@ -1354,8 +1356,9 @@ $("#btn-suggest").addEventListener("click", async ()=>{
   const preference = $("#in-pref").value;
   const additional_info = $("#in-notes").value;
   const area = $("#in-area").value;
-  const variety = parseInt($("#in-variety").value);
+  const variety = parseInt($('input[name="variety"]:checked').value);
   const activeProfile = $("#profile-select").value;
+
   const who = activeProfile === "all" ? "" : activeProfile;
   const concurrency_control = $('input[name="concurrency_control"]:checked').value === "on";
 
@@ -1681,8 +1684,9 @@ function renderSuggestionCard(people){
     const preference = $("#in-pref").value;
     const additional_info = $("#in-notes").value;
     const area = $("#in-area").value;
-    const variety = parseInt($("#in-variety").value);
+    const variety = parseInt($('input[name="variety"]:checked').value);
     const activeProfile = $("#profile-select").value;
+
     const who = activeProfile === "all" ? "" : activeProfile;
     const concurrency_control = $('input[name="concurrency_control"]:checked').value === "on";
 
