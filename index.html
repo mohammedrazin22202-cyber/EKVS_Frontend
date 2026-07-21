@@ -1293,6 +1293,26 @@ $("#btn-join-poll").addEventListener("click", joinGroupPoll);
 
 // ---------------- Suggestions ----------------
 
+function unlockFindMealButton() {
+  const btn = $("#btn-suggest");
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = "🔮 FIND MY MEAL";
+    btn.style.opacity = "1";
+    btn.style.cursor = "pointer";
+  }
+}
+
+function lockFindMealButton() {
+  const btn = $("#btn-suggest");
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "🔒 DECISION IN PROGRESS (USE REROLLS)";
+    btn.style.opacity = "0.6";
+    btn.style.cursor = "not-allowed";
+  }
+}
+
 function runSlotReelAnimation(people) {
   $("#spin-wrap").classList.add("show");
   $("#results").innerHTML = "";
@@ -1338,7 +1358,7 @@ function runSlotReelAnimation(people) {
         
         setTimeout(() => {
           $("#spin-wrap").classList.remove("show");
-          $("#btn-suggest").disabled = false;
+          lockFindMealButton();
           renderSuggestionCard(people);
           AudioFX.success();
           if(window.confetti){
@@ -1349,6 +1369,7 @@ function runSlotReelAnimation(people) {
     }
   }, tickInterval);
 }
+
 
 $("#btn-suggest").addEventListener("click", async ()=>{
   const budget = parseFloat($("#in-budget").value);
@@ -1774,6 +1795,7 @@ function renderSuggestionCard(people){
         setTimeout(() => {
           resultsDiv.innerHTML = "";
           resultsDiv.style.opacity = "1";
+          unlockFindMealButton();
         }, 600);
       }, 1200);
     } catch (e) {
@@ -1782,6 +1804,19 @@ function renderSuggestionCard(people){
     }
   });
 }
+
+// Automatically unlock "FIND MY MEAL" button if user changes any search parameters
+["#in-budget", "#in-people", "#in-pref", "#in-area", "#in-notes"].forEach(sel => {
+  const el = $(sel);
+  if (el) {
+    el.addEventListener("input", unlockFindMealButton);
+    el.addEventListener("change", unlockFindMealButton);
+  }
+});
+$all('input[name="variety"], input[name="concurrency_control"]').forEach(el => {
+  el.addEventListener("change", unlockFindMealButton);
+});
+
 
 // ---------------- Manage: Places & Items ----------------
 
