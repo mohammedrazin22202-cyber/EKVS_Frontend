@@ -1281,9 +1281,18 @@ function renderSuggestionCard(people){
     return;
   }
   const s = currentSuggestions[currentSuggestionIndex];
-  const unseenRestaurants = currentSuggestions.filter(cand => !seenPlaceIdsInSession.has(cand.place_id)).length;
+  const unseenRestaurants = new Set(
+    currentSuggestions
+      .filter(cand => !seenPlaceIdsInSession.has(cand.place_id))
+      .map(cand => cand.place_id)
+  ).size;
   const currentPlaceId = s.place_id;
-  const unseenMeals = currentSuggestions.filter(cand => cand.place_id === currentPlaceId && !seenItemIdsForCurrentPlace.has(cand.item_id)).length;
+  const unseenMeals = new Set(
+    currentSuggestions
+      .filter(cand => cand.place_id === currentPlaceId && !seenItemIdsForCurrentPlace.has(cand.item_id))
+      .map(cand => cand.item_id)
+  ).size;
+
   
   $("#results").innerHTML = `
     <div class="prize-card" style="text-align: center;">
