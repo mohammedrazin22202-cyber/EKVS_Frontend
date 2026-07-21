@@ -725,6 +725,62 @@
   </div>
 </div>
 
+<!-- Add New Meal to Suggested Restaurant Modal Dialog -->
+<div id="add-new-meal-modal" style="
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(22, 4, 36, 0.85);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+">
+  <div class="ticket" style="
+    max-width: 400px;
+    width: 100%;
+    margin-bottom: 0;
+    box-shadow: 0 8px 0 #000, 0 8px 24px rgba(0,0,0,.6);
+  ">
+    <h3 class="display" style="margin:0 0 4px; font-size:22px; color: var(--hot-pink);">➕ Add New Meal</h3>
+    <p id="add-new-meal-place-subtitle" style="font-size: 13px; font-weight: 800; opacity: 0.85; margin-bottom: 15px; color: #1a0630;"></p>
+
+    <label>🍔 Meal / Item Name</label>
+    <input type="text" id="add-new-meal-name" placeholder="e.g. Special Chicken Biryani" style="width: 100%; margin-bottom: 12px;" />
+
+    <label>💰 Price (₹)</label>
+    <input type="number" id="add-new-meal-price" placeholder="e.g. 180" min="1" style="width: 100%; margin-bottom: 12px;" />
+
+    <label>🥗 Category</label>
+    <select id="add-new-meal-cat" style="width: 100%; margin-bottom: 12px;">
+      <option value="non-veg">Non-Veg</option>
+      <option value="veg">Veg</option>
+      <option value="egg">Egg</option>
+      <option value="dessert">Dessert</option>
+      <option value="drink">Drink</option>
+    </select>
+
+    <label>🍱 Food Role / Type</label>
+    <select id="add-new-meal-role" style="width: 100%; margin-bottom: 12px;">
+      <option value="main">Main Course 🍱</option>
+      <option value="snack">Snack 🍟</option>
+      <option value="side">Side Dish / Complement 🥗</option>
+      <option value="dessert">Dessert 🍨</option>
+      <option value="beverage">Beverage / Drink 🥤</option>
+    </select>
+
+    <label>🏷️ Tags (optional)</label>
+    <input type="text" id="add-new-meal-tags" placeholder="e.g. spicy, rice, south indian" style="width: 100%; margin-bottom: 20px;" />
+    
+    <div style="display: flex; gap: 12px; justify-content: flex-end;">
+      <button id="add-new-meal-btn-cancel" class="claim-btn" style="background: var(--prize-red); color: #fff; margin-top: 0; box-shadow: 0 3px 0 #8c0012; font-weight: 800;">Cancel</button>
+      <button id="add-new-meal-btn-save" class="claim-btn" style="background: var(--win-green); color: #000; margin-top: 0; box-shadow: 0 3px 0 #0b6b3c; font-weight: 800;">Add Meal +</button>
+    </div>
+  </div>
+</div>
+
+
 <div class="status-pill" style="display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
   <span id="status-pill">checking sync...</span>
   <span id="btn-manual-sync" style="cursor: pointer; font-size: 14px;" title="Sync database now">🔄</span>
@@ -1077,6 +1133,108 @@ $all("#custom-meal-modal input").forEach(inp => {
   });
 });
 
+// Add New Meal Modal Logic
+function roundToTwo(num) {
+  return +(Math.round(num + "e+2")  + "e-2");
+}
+
+const AddNewMealModal = {
+  el: $("#add-new-meal-modal"),
+  subtitle: $("#add-new-meal-place-subtitle"),
+  name: $("#add-new-meal-name"),
+  price: $("#add-new-meal-price"),
+  cat: $("#add-new-meal-cat"),
+  role: $("#add-new-meal-role"),
+  tags: $("#add-new-meal-tags"),
+
+  show(placeName) {
+    this.subtitle.textContent = `for ${placeName}`;
+    this.name.value = "";
+    this.price.value = "";
+    this.cat.value = "non-veg";
+    this.role.value = "main";
+    this.tags.value = "";
+    this.el.style.display = "flex";
+    this.name.focus();
+  },
+  hide() {
+    this.el.style.display = "none";
+  }
+};
+
+$("#add-new-meal-btn-cancel").addEventListener("click", () => {
+  AddNewMealModal.hide();
+});
+
+$("#add-new-meal-btn-save").addEventListener("click", async () => {
+  if (!revealedSuggestions || revealedSuggestions.length === 0) return;
+  const activeRestaurant = revealedSuggestions[activeRevealedIndex];
+  
+  const name = AddNewMealModal.name.value.trim();
+  const price = parseFloat(AddNewMealModal.price.value);
+  const category = AddNewMealModal.cat.value;
+  const meal_role = AddNewMealModal.role.value;
+  const tags = AddNewMealModal.tags.value.trim();
+
+  if(!name || isNaN(price) || price <= 0){
+    Modal.alert("Please enter a valid Meal Name and Price!");
+    return;
+  }
+
+  try {
+    const res = await fetch(API + `/api/places/${activeRestaurant.place_id}/items`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, price, category, meal_role, tags })
+    });
+    
+    const data = await res.json();
+    if (!res.ok) {
+      Modal.alert(data.detail || "Failed to add meal.");
+      return;
+    }
+
+    const people = parseInt($("#in-people").value) || 1;
+    const createdCandidate = {
+      place_id: activeRestaurant.place_id,
+      place_name: activeRestaurant.place_name,
+      area: activeRestaurant.area,
+      item_id: data.id,
+      item_name: name,
+      price_per_person: roundToTwo(price / people),
+      expected_amount: roundToTwo(price),
+      score: 150.0
+    };
+
+    if (!activeRestaurant.revealedMeals) {
+      activeRestaurant.revealedMeals = [activeRestaurant];
+    }
+    activeRestaurant.revealedMeals.push(createdCandidate);
+    activeRestaurant.activeMealIndex = activeRestaurant.revealedMeals.length - 1;
+    seenItemIdsForCurrentPlace.add(data.id);
+    
+    AddNewMealModal.hide();
+    loadPlaces(); // refresh inventory cache
+    renderSuggestionCard(people);
+    $("#item-details-container").style.display = "block";
+    $("#click-prompt").textContent = "👆 Click restaurant name to hide details";
+    AudioFX.success();
+    if(window.confetti){ confetti({ particleCount: 60, spread: 60, origin: { y: 0.6 } }); }
+  } catch (err) {
+    Modal.alert("Error connecting to server.");
+  }
+});
+
+$all("#add-new-meal-modal input").forEach(inp => {
+  inp.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      $("#add-new-meal-btn-save").click();
+    }
+  });
+});
+
+
 // ---------------- Tabs ----------------
 $all("nav.tabs button").forEach(btn=>{
   btn.addEventListener("click", ()=>{
@@ -1404,11 +1562,27 @@ function renderSuggestionCard(people){
           💡 ADDITIONAL SUGGESTION (UPGRADE BUDGET)
         </button>
       </div>
+
+      <div style="margin-top: 10px;">
+        <button id="btn-add-meal-to-place" 
+                style="width: 100%; background: var(--hot-pink); color: #fff; border: 3px solid #000; border-radius: 10px; padding: 10px 16px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 0 #8c0a4d; font-family: 'Baloo 2', sans-serif; font-size: 15px;">
+          ➕ ADD NEW MEAL TO ${s.place_name.toUpperCase()}
+        </button>
+      </div>
     </div>
   `;
 
+  // Wire up add meal to place button
+  const addMealBtn = $("#btn-add-meal-to-place");
+  if (addMealBtn) {
+    addMealBtn.addEventListener("click", () => {
+      AddNewMealModal.show(activeRestaurant.place_name);
+    });
+  }
+
   // Wire up surf tab buttons
   $all(".surf-tab-btn").forEach(btn => {
+
     btn.addEventListener("click", () => {
       activeRevealedIndex = parseInt(btn.dataset.idx);
       renderSuggestionCard(people);
