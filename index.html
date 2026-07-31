@@ -438,6 +438,18 @@
     margin-left: 8px;
     box-shadow: 0 2px 0 #000;
   ">+ Profile</button>
+  <button id="btn-edit-profile-prefs" style="
+    background: var(--deep-purple-2);
+    color: #fff;
+    border: 2px solid #000;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-weight: 800;
+    font-family: 'Baloo 2', sans-serif;
+    cursor: pointer;
+    margin-left: 8px;
+    box-shadow: 0 2px 0 #000;
+  ">⚙️ Preferences</button>
 </div>
 
 <nav class="tabs">
@@ -537,15 +549,13 @@
         ">JOIN POLL</button>
       </div>
 
-      <div class="spinner-wrap" id="spin-wrap">
-        <div class="slot-machine">
-          <div class="slot-window">
-            <div class="slot-reel" id="slot-reel">
-              <div class="slot-item">🍔 Pizza...</div>
-            </div>
-          </div>
+      <div class="spinner-wrap" id="spin-wrap" style="display: none; text-align: center; margin: 20px 0;">
+        <div style="position: relative; width: 280px; height: 280px; margin: 0 auto;">
+          <canvas id="wheel-canvas" width="280" height="280" style="border: 6px solid #000; border-radius: 50%; background: #fff; box-shadow: 0 6px 0 #000;"></canvas>
+          <!-- Wheel pointer -->
+          <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 22px solid var(--prize-red); z-index: 10; filter: drop-shadow(0 2px 0 #000);"></div>
         </div>
-        <div class="display" style="font-size:18px; font-weight:800; color:var(--cream); text-shadow:2px 2px 0 #000;">🎲 SPINNING THE WHEEL OF MEALS... 🎲</div>
+        <div class="display" style="font-size:18px; font-weight:800; color:var(--cream); text-shadow:2px 2px 0 #000; margin-top: 15px;">🎲 SPINNING THE MEAL WHEEL... 🎲</div>
       </div>
     </div>
 
@@ -583,6 +593,36 @@
       gap: 12px;
       margin-bottom: 20px;
     "></div>
+
+    <!-- Analytics Dashboard -->
+    <div id="history-dashboard" style="
+      background: var(--cream);
+      color: #1a0630;
+      border: 4px solid #000;
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 20px;
+      box-shadow: 0 6px 0 #000;
+      display: none;
+    ">
+      <h3 class="display" style="margin: 0 0 15px; font-size: 20px; color: var(--hot-pink); -webkit-text-stroke: 1px #000;">📊 DINE INSIGHTS & ANALYTICS</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+        <!-- Spending Weekly Trend -->
+        <div style="background: rgba(0,0,0,0.04); border: 2.5px solid #000; border-radius: 12px; padding: 12px; min-width: 0; box-shadow: 0 3px 0 #000;">
+          <h4 class="display" style="margin: 0 0 8px; font-size: 14px; color: var(--deep-purple-2);">Weekly Spend Trend</h4>
+          <div id="spend-chart-container" style="height: 120px; display: flex; align-items: flex-end; justify-content: space-around; padding-top: 10px; border-bottom: 3px solid #000;">
+            <!-- Dynamic SVG or CSS bars will render here -->
+          </div>
+        </div>
+        <!-- Cuisine Preferences -->
+        <div style="background: rgba(0,0,0,0.04); border: 2.5px solid #000; border-radius: 12px; padding: 12px; min-width: 0; box-shadow: 0 3px 0 #000;">
+          <h4 class="display" style="margin: 0 0 8px; font-size: 14px; color: var(--deep-purple-2);">Top Cuisine Breakdown</h4>
+          <div id="cuisine-chart-container" style="display: flex; flex-direction: column; gap: 6px; justify-content: center; height: 120px; overflow-y: auto;">
+            <!-- Dynamic progress bars -->
+          </div>
+        </div>
+      </div>
+    </div>
     <div style="text-align: right; margin-bottom: 20px;">
       <button id="btn-open-custom-meal" class="claim-btn" style="background: var(--hot-pink); color: #fff; margin-top: 0; box-shadow: 0 4px 0 #8c0a4d; font-weight: 800;">
         ➕ REGISTER CUSTOM MEAL
@@ -680,6 +720,49 @@
     <div style="display: flex; gap: 12px; justify-content: flex-end;">
       <button id="edit-item-btn-cancel" class="claim-btn" style="background: var(--prize-red); color: #fff; margin-top: 0; box-shadow: 0 3px 0 #8c0012; font-weight: 800;">Cancel</button>
       <button id="edit-item-btn-save" class="claim-btn" style="background: var(--win-green); color: #000; margin-top: 0; box-shadow: 0 3px 0 #0b6b3c; font-weight: 800;">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Profile Preferences Modal -->
+<div id="profile-prefs-modal" style="
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(22, 4, 36, 0.85);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+">
+  <div class="ticket" style="
+    max-width: 400px;
+    width: 100%;
+    margin-bottom: 0;
+    box-shadow: 0 8px 0 #000, 0 8px 24px rgba(0,0,0,.6);
+  ">
+    <h3 class="display" style="margin:0 0 10px; font-size:22px; color: var(--hot-pink);">Profile Preferences</h3>
+    <p style="font-size: 13px; font-weight: 700; opacity: 0.8; margin-bottom: 15px; color: #1a0630;">Configure preferences for active profile: <strong id="prefs-profile-name" style="color: var(--hot-pink);"></strong></p>
+    
+    <label>🥗 Default Dietary Preference</label>
+    <select id="prefs-default-pref" style="width: 100%; margin-bottom: 12px;">
+      <option value="">No preference</option>
+      <option value="veg">Veg</option>
+      <option value="non-veg">Non-veg</option>
+      <option value="egg">Egg</option>
+      <option value="spicy">Spicy</option>
+      <option value="dessert">Dessert / Sweet</option>
+      <option value="light">Light / Healthy</option>
+      <option value="street food">Street food</option>
+    </select>
+    
+    <label>🚫 Dislikes & Allergy Exclusions</label>
+    <input type="text" id="prefs-dislikes" placeholder="e.g. peanuts, mushroom, onion (comma-separated)" style="width: 100%; margin-bottom: 20px;" />
+    
+    <div style="display: flex; gap: 12px; justify-content: flex-end;">
+      <button id="prefs-btn-cancel" class="claim-btn" style="background: var(--prize-red); color: #fff; margin-top: 0; box-shadow: 0 3px 0 #8c0012; font-weight: 800;">Cancel</button>
+      <button id="prefs-btn-save" class="claim-btn" style="background: var(--win-green); color: #000; margin-top: 0; box-shadow: 0 3px 0 #0b6b3c; font-weight: 800;">Save Settings</button>
     </div>
   </div>
 </div>
@@ -1051,6 +1134,78 @@ $all("#edit-item-modal input").forEach(inp => {
   });
 });
 
+// Profile Preferences Modal Logic
+const ProfilePrefsModal = {
+  el: $("#profile-prefs-modal"),
+  nameEl: $("#prefs-profile-name"),
+  defaultPrefSelect: $("#prefs-default-pref"),
+  dislikesInput: $("#prefs-dislikes"),
+
+  show(profileName) {
+    this.nameEl.textContent = profileName;
+    
+    // Load existing settings
+    let dislikes = "";
+    let defaultPref = "";
+    const stored = localStorage.getItem("ekvs_prefs_" + profileName.toLowerCase());
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        dislikes = parsed.dislikes || "";
+        defaultPref = parsed.defaultPref || "";
+      } catch (e) {}
+    }
+    
+    this.defaultPrefSelect.value = defaultPref;
+    this.dislikesInput.value = dislikes;
+    this.el.style.display = "flex";
+  },
+  
+  hide() {
+    this.el.style.display = "none";
+  }
+};
+
+$("#prefs-btn-cancel").addEventListener("click", () => {
+  ProfilePrefsModal.hide();
+});
+
+$("#prefs-btn-save").addEventListener("click", () => {
+  const profileName = ProfilePrefsModal.nameEl.textContent.trim();
+  const defaultPref = ProfilePrefsModal.defaultPrefSelect.value;
+  const dislikes = ProfilePrefsModal.dislikesInput.value.trim();
+  
+  localStorage.setItem("ekvs_prefs_" + profileName.toLowerCase(), JSON.stringify({
+    defaultPref,
+    dislikes
+  }));
+  
+  // Update current preference select in the main UI if active
+  const activeProfile = $("#profile-select").value;
+  if (activeProfile.toLowerCase() === profileName.toLowerCase()) {
+    $("#in-pref").value = defaultPref;
+  }
+  
+  ProfilePrefsModal.hide();
+  Modal.alert("Preferences saved successfully!");
+});
+
+$("#btn-edit-profile-prefs").addEventListener("click", () => {
+  const activeProfile = $("#profile-select").value;
+  if (activeProfile === "all") {
+    Modal.alert("Please select a specific profile to configure preferences (cannot configure for 'All Profiles').");
+    return;
+  }
+  ProfilePrefsModal.show(activeProfile);
+});
+
+$("#prefs-dislikes").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    $("#prefs-btn-save").click();
+  }
+});
+
 // Custom Meal Modal Logic
 const CustomMealModal = {
   el: $("#custom-meal-modal"),
@@ -1260,6 +1415,23 @@ async function checkStatus(){
   }
 }
 checkStatus();
+
+// Dynamic status checking and auto-sync
+window.addEventListener("online", checkStatus);
+window.addEventListener("offline", checkStatus);
+
+setInterval(async () => {
+  try {
+    if (window.navigator.onLine) {
+      await Promise.all([
+        fetch(API + "/api/sync/push", { method: "POST" }),
+        fetch(API + "/api/sync/pull", { method: "POST" })
+      ]);
+    }
+    await checkStatus();
+  } catch(e) {}
+}, 30000);
+
 initProfiles();
 loadPlaces(); // Populate places and areas dropdown on page load
 
@@ -1313,61 +1485,152 @@ function lockFindMealButton() {
   }
 }
 
-function runSlotReelAnimation(people) {
-  $("#spin-wrap").classList.add("show");
+function runSpinWheelAnimation(people) {
+  $("#spin-wrap").style.display = "block";
   $("#results").innerHTML = "";
 
-  const reel = $("#slot-reel");
-  reel.style.opacity = "1";
-  reel.style.transition = "none";
-  reel.style.transform = "translateY(0px)";
+  const canvas = document.getElementById("wheel-canvas");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
 
-  const actualMealName = currentSuggestions[0].item_name;
-  const randomItems = [];
-  if (itemsCache && itemsCache.length > 0) {
-    for (let i = 0; i < 11; i++) {
-      const randomIt = itemsCache[Math.floor(Math.random() * itemsCache.length)];
-      randomItems.push(randomIt.name);
+  // Get up to 8 unique restaurant suggestions
+  const wheelCandidates = [];
+  const seenPlaces = new Set();
+  for (const cand of currentSuggestions) {
+    if (!seenPlaces.has(cand.place_id)) {
+      seenPlaces.add(cand.place_id);
+      wheelCandidates.push(cand);
+      if (wheelCandidates.length >= 8) break;
     }
-  } else {
-    randomItems.push("Pizza", "Burger", "Biryani", "Noodles", "Salad", "Tacos", "Pasta", "Sushi", "Waffles", "Ice Cream", "Momos");
   }
-  randomItems.push(actualMealName);
 
-  reel.innerHTML = randomItems.map(name => `<div class="slot-item">🍔 ${name}</div>`).join("");
+  let segments = wheelCandidates.map(s => s.place_name);
+  if (segments.length === 0) {
+    segments = ["No options found! 😢"];
+  } else if (segments.length === 1) {
+    segments = [segments[0], "Try Reroll 🔄", segments[0], "Cook at Home 🍳"];
+  } else if (segments.length === 2) {
+    segments = [segments[0], segments[1], segments[0], segments[1]];
+  } else if (segments.length === 3) {
+    segments = [segments[0], segments[1], segments[2], "Surprise Combo 🎲"];
+  }
 
-  let currentScroll = 0;
-  const itemHeight = 70;
-  const scrollDuration = 2000; 
-  const ticks = randomItems.length - 1;
-  const tickInterval = scrollDuration / ticks;
+  const colors = ["#FFD447", "#FF2E9F", "#17D97A", "#6441A5"];
   
-  let tickCount = 0;
-  const scrollTimer = setInterval(() => {
-    if (tickCount < ticks) {
-      currentScroll -= itemHeight;
-      reel.style.transform = `translateY(${currentScroll}px)`;
-      AudioFX.tick();
-      tickCount++;
-    } else {
-      clearInterval(scrollTimer);
+  function drawWheel(angle) {
+    const numSegments = segments.length;
+    const arcSize = (2 * Math.PI) / numSegments;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw outer black boundary
+    ctx.beginPath();
+    ctx.arc(140, 140, 134, 0, 2 * Math.PI);
+    ctx.fillStyle = "#000";
+    ctx.fill();
+    
+    for (let i = 0; i < numSegments; i++) {
+      const segAngle = angle + i * arcSize;
+      ctx.beginPath();
+      ctx.moveTo(140, 140);
+      ctx.arc(140, 140, 130, segAngle, segAngle + arcSize);
+      ctx.fillStyle = colors[i % colors.length];
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = "#000";
+      ctx.stroke();
       
-      setTimeout(() => {
-        reel.style.transition = "opacity 0.25s ease-out";
-        reel.style.opacity = "0";
-        
-        setTimeout(() => {
-          $("#spin-wrap").classList.remove("show");
-          lockFindMealButton();
-          renderSuggestionCard(people);
-          AudioFX.success();
-          if(window.confetti){
-            confetti({ particleCount: 140, spread: 90, origin: { y: 0.6 } });
-          }
-        }, 250);
-      }, 400);
+      // Draw text
+      ctx.save();
+      ctx.translate(140, 140);
+      ctx.rotate(segAngle + arcSize / 2);
+      ctx.textAlign = "right";
+      ctx.fillStyle = "#000";
+      ctx.font = "bold 13px 'Baloo 2', sans-serif";
+      
+      let txt = segments[i];
+      if (txt.length > 14) txt = txt.substring(0, 12) + "...";
+      ctx.fillText(txt, 115, 5);
+      ctx.restore();
     }
-  }, tickInterval);
+    
+    // Draw center pin
+    ctx.beginPath();
+    ctx.arc(140, 140, 20, 0, 2 * Math.PI);
+    ctx.fillStyle = "#FFF6DD";
+    ctx.fill();
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = "#000";
+    ctx.stroke();
+    
+    ctx.beginPath();
+    ctx.arc(140, 140, 8, 0, 2 * Math.PI);
+    ctx.fillStyle = "#000";
+    ctx.fill();
+  }
+
+  let currentAngle = 0;
+  let speed = 25 + Math.random() * 15;
+  const friction = 0.975;
+  const numSegments = segments.length;
+  const arcSize = (2 * Math.PI) / numSegments;
+  
+  let lastBoundaryIndex = -1;
+  
+  function animate() {
+    currentAngle += speed * (Math.PI / 180);
+    speed *= friction;
+    
+    const pointerAngle = 1.5 * Math.PI;
+    const relativeAngle = (pointerAngle - currentAngle) % (2 * Math.PI);
+    const normalizedAngle = relativeAngle < 0 ? relativeAngle + 2 * Math.PI : relativeAngle;
+    const currentSegmentIndex = Math.floor(normalizedAngle / arcSize);
+    
+    if (currentSegmentIndex !== lastBoundaryIndex) {
+      AudioFX.tick();
+      lastBoundaryIndex = currentSegmentIndex;
+    }
+    
+    drawWheel(currentAngle);
+    
+    if (speed > 0.08) {
+      requestAnimationFrame(animate);
+    } else {
+      setTimeout(() => {
+        $("#spin-wrap").style.display = "none";
+        
+        // Calculate landing segment and set active suggestion
+        const pointerAngle = 1.5 * Math.PI;
+        const relativeAngle = (pointerAngle - currentAngle) % (2 * Math.PI);
+        const normalizedAngle = relativeAngle < 0 ? relativeAngle + 2 * Math.PI : relativeAngle;
+        const landingSegmentIndex = Math.floor(normalizedAngle / arcSize);
+        
+        let chosenCandidate = wheelCandidates[landingSegmentIndex];
+        // If it landed on a placeholder or undefined index, fallback to first candidate
+        if (!chosenCandidate) {
+          chosenCandidate = wheelCandidates[0] || currentSuggestions[0];
+        }
+        
+        if (chosenCandidate) {
+          chosenCandidate.revealedMeals = [chosenCandidate];
+          chosenCandidate.activeMealIndex = 0;
+          
+          seenPlaceIdsInSession = new Set([chosenCandidate.place_id]);
+          seenItemIdsForCurrentPlace = new Set([chosenCandidate.item_id]);
+          revealedSuggestions = [chosenCandidate];
+          activeRevealedIndex = 0;
+        }
+
+        lockFindMealButton();
+        renderSuggestionCard(people);
+        AudioFX.success();
+        if (window.confetti) {
+          confetti({ particleCount: 140, spread: 90, origin: { y: 0.6 } });
+        }
+      }, 500);
+    }
+  }
+  
+  animate();
 }
 
 
@@ -1388,6 +1651,18 @@ $("#btn-suggest").addEventListener("click", async ()=>{
     return;
   }
 
+  // Get dislikes from localStorage
+  let dislikes = "";
+  if (activeProfile !== "all") {
+    const storedPrefs = localStorage.getItem("ekvs_prefs_" + activeProfile.toLowerCase());
+    if (storedPrefs) {
+      try {
+        const parsed = JSON.parse(storedPrefs);
+        dislikes = parsed.dislikes || "";
+      } catch (e) {}
+    }
+  }
+
   $("#btn-suggest").disabled = true;
 
   // 1. Check for Upgrade Candidate FIRST!
@@ -1397,7 +1672,7 @@ $("#btn-suggest").addEventListener("click", async ()=>{
     const upRes = await fetch(API + "/api/suggest/upgrade", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ budget, people, preference, additional_info, area, variety, who, concurrency_control })
+      body: JSON.stringify({ budget, people, preference, additional_info, area, variety, who, concurrency_control, dislikes })
     });
     if (upRes.ok) {
       upgradeData = await upRes.json();
@@ -1422,7 +1697,7 @@ $("#btn-suggest").addEventListener("click", async ()=>{
     const r = await fetch(API+"/api/suggest", {
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({budget: effectiveBudget, people, preference, additional_info, area, variety, who, concurrency_control, count:40})
+      body: JSON.stringify({budget: effectiveBudget, people, preference, additional_info, area, variety, who, concurrency_control, count:40, dislikes})
     });
     const data = await r.json();
 
@@ -1457,9 +1732,7 @@ $("#btn-suggest").addEventListener("click", async ()=>{
     revealedSuggestions = [currentSuggestions[0]];
     activeRevealedIndex = 0;
 
-
-
-    runSlotReelAnimation(people);
+    runSpinWheelAnimation(people);
 
   }catch(e){
     $("#btn-suggest").disabled = false;
@@ -1711,11 +1984,23 @@ function renderSuggestionCard(people){
     const who = activeProfile === "all" ? "" : activeProfile;
     const concurrency_control = $('input[name="concurrency_control"]:checked').value === "on";
 
+    // Get dislikes from localStorage
+    let dislikes = "";
+    if (activeProfile !== "all") {
+      const storedPrefs = localStorage.getItem("ekvs_prefs_" + activeProfile.toLowerCase());
+      if (storedPrefs) {
+        try {
+          const parsed = JSON.parse(storedPrefs);
+          dislikes = parsed.dislikes || "";
+        } catch (e) {}
+      }
+    }
+
     try {
       const res = await fetch(API + "/api/suggest/upgrade", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ budget, people, preference, additional_info, area, variety, who, concurrency_control })
+        body: JSON.stringify({ budget, people, preference, additional_info, area, variety, who, concurrency_control, dislikes })
       });
       const data = await res.json();
       if (!res.ok) {
@@ -1734,7 +2019,7 @@ function renderSuggestionCard(people){
         const r = await fetch(API + "/api/suggest", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ budget: data.new_budget, people, preference, additional_info, area, variety, who, concurrency_control, count: 40 })
+          body: JSON.stringify({ budget: data.new_budget, people, preference, additional_info, area, variety, who, concurrency_control, count: 40, dislikes })
         });
         const sugData = await r.json();
         if (r.ok && sugData.suggestions) {
@@ -1752,7 +2037,7 @@ function renderSuggestionCard(people){
           seenPlaceIdsInSession = new Set([currentSuggestions[0].place_id]);
           seenItemIdsForCurrentPlace = new Set([currentSuggestions[0].item_id]);
 
-          runSlotReelAnimation(people);
+          runSpinWheelAnimation(people);
         }
       }
     } catch (e) {
@@ -1989,8 +2274,9 @@ async function loadPlaces(){
       row.querySelectorAll(".star").forEach(star=>{
         star.addEventListener("click", async (e)=>{
           e.stopPropagation();
+          const item = itemsCache.find(it => it.id === itemId);
+          const currentRating = item ? (item.rating || 0) : 0;
           const ratingValue = parseInt(star.dataset.value);
-          const currentRating = item.rating || 0;
           const newRating = (currentRating === ratingValue && ratingValue === 1) ? 0 : ratingValue;
           await fetch(`${API}/api/items/${itemId}`, {
             method:"PUT", headers:{"Content-Type":"application/json"},
@@ -2165,7 +2451,7 @@ async function createGroupPoll(){
   const preference = $("#in-pref").value;
   const additional_info = $("#in-notes").value;
   const area = $("#in-area").value;
-  const variety = parseInt($("#in-variety").value);
+  const variety = parseInt($('input[name="variety"]:checked').value);
   const concurrency_control = $('input[name="concurrency_control"]:checked').value === "on";
 
   if(!budget || !people){
@@ -2289,7 +2575,7 @@ function renderPollVotingState(poll){
             <span style="color: var(--win-green);">${count} votes (${pct}%)</span>
           </div>
           <div style="width: 100%; background: rgba(255,255,255,0.1); border-radius: 4px; height: 8px; margin-top: 8px; overflow: hidden;">
-            <div style="width: ${pct}%; background: var(--win-green); height: 100%;"></div>
+            <div style="width: 0%; background: var(--win-green); height: 100%; transition: width 0.5s ease-out;" class="poll-bar" data-pct="${pct}"></div>
           </div>
         </div>
       `;
@@ -2333,8 +2619,32 @@ function renderPollVotingState(poll){
         👥 Voters in room: ${poll.voted_users.length > 0 ? poll.voted_users.join(", ") : "waiting for votes..."}
       </div>
 
+      <div style="border-top: 2px dashed rgba(0,0,0,0.15); padding-top: 15px; margin-top: 15px; text-align: left; color: #000;">
+        <div style="font-weight: 800; font-size: 13px; margin-bottom: 8px; color: #1a0630;">💡 Suggest a Write-in Meal:</div>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+          <select id="poll-write-in-restaurant" style="flex: 1; min-width: 110px; font-size: 12px; padding: 4px 6px; border: 2px solid #000; border-radius: 6px; background:#fff;">
+            <option value="">Choose Restaurant...</option>
+            ${placesCache.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+          </select>
+          <input type="text" id="poll-write-in-name" placeholder="Dish name (e.g. Biryani)" style="flex: 1.2; min-width: 120px; font-size: 12px; padding: 4px 6px; border: 2px solid #000; border-radius: 6px;" />
+          <input type="number" id="poll-write-in-price" placeholder="Price" style="width: 60px; font-size: 12px; padding: 4px 6px; border: 2px solid #000; border-radius: 6px;" />
+          <button id="btn-poll-submit-write-in" style="
+            background: var(--win-green);
+            color: #000;
+            border: 2px solid #000;
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-weight: 800;
+            cursor: pointer;
+            font-size: 12px;
+            font-family: 'Baloo 2', sans-serif;
+            box-shadow: 0 2px 0 #000;
+          ">Add</button>
+        </div>
+      </div>
+
       ${isPollCreator ? `
-        <button id="btn-close-poll" class="big-cta" style="background: var(--hot-pink); box-shadow: 0 6px 0 #8c0a4d; margin-top: 10px;">
+        <button id="btn-close-poll" class="big-cta" style="background: var(--hot-pink); box-shadow: 0 6px 0 #8c0a4d; margin-top: 20px;">
           🔒 CLOSE POLL & CHOOSE WINNER
         </button>
       ` : `
@@ -2344,6 +2654,61 @@ function renderPollVotingState(poll){
       `}
     </div>
   `;
+
+  // Animate progress bars
+  setTimeout(() => {
+    $all(".poll-bar").forEach(bar => {
+      bar.style.width = bar.dataset.pct + "%";
+    });
+  }, 50);
+
+  // Bind write-in click listener
+  $("#btn-poll-submit-write-in").addEventListener("click", async () => {
+    const writeInPlaceId = $("#poll-write-in-restaurant").value;
+    const writeInName = $("#poll-write-in-name").value.trim();
+    const writeInPrice = parseFloat($("#poll-write-in-price").value);
+    
+    if (!writeInPlaceId || !writeInName || isNaN(writeInPrice) || writeInPrice <= 0) {
+      Modal.alert("Please pick a restaurant, type a dish name, and set a valid price!");
+      return;
+    }
+    
+    const placeObj = placesCache.find(p => p.id === writeInPlaceId);
+    const placeName = placeObj ? placeObj.name : "Custom";
+    
+    $("#btn-poll-submit-write-in").disabled = true;
+    $("#btn-poll-submit-write-in").textContent = "...";
+    
+    try {
+      const res = await fetch(API + `/api/polls/${poll.code}/write_in`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          place_id: writeInPlaceId,
+          item_id: "writein",
+          place_name: placeName,
+          item_name: writeInName,
+          price: writeInPrice,
+          people: parseInt($("#in-people").value) || 2,
+          who: who
+        })
+      });
+      
+      if (res.ok) {
+        $("#poll-write-in-name").value = "";
+        $("#poll-write-in-price").value = "";
+        refreshPollRoom();
+      } else {
+        const data = await res.json();
+        Modal.alert(data.detail || "Failed to submit write-in.");
+      }
+    } catch (e) {
+      Modal.alert("Network error submitting write-in.");
+    } finally {
+      $("#btn-poll-submit-write-in").disabled = false;
+      $("#btn-poll-submit-write-in").textContent = "Add";
+    }
+  });
 
   if (isPollCreator) {
     $("#btn-close-poll").addEventListener("click", async () => {
@@ -2477,7 +2842,28 @@ function initProfiles() {
 }
 
 $("#profile-select").addEventListener("change", (e) => {
-  localStorage.setItem("ekvs_active_profile", e.target.value);
+  const activeProfile = e.target.value;
+  localStorage.setItem("ekvs_active_profile", activeProfile);
+  
+  if (activeProfile !== "all") {
+    const storedPrefs = localStorage.getItem("ekvs_prefs_" + activeProfile.toLowerCase());
+    if (storedPrefs) {
+      try {
+        const parsed = JSON.parse(storedPrefs);
+        if (parsed.defaultPref) {
+          $("#in-pref").value = parsed.defaultPref;
+        } else {
+          $("#in-pref").value = "";
+        }
+      } catch (e) {
+        $("#in-pref").value = "";
+      }
+    } else {
+      $("#in-pref").value = "";
+    }
+  } else {
+    $("#in-pref").value = "";
+  }
   loadHistory();
 });
 
@@ -2604,6 +2990,8 @@ async function loadHistory(){
     </div>
   `;
 
+  renderAnalyticsDashboard(filteredRows);
+
   $("#history-list").innerHTML = filteredRows.map(h=>{
     const isCustom = h.place_id === "custom";
     const borderStyle = isCustom ? "border-left: 4px solid var(--hot-pink);" : "border-left: 4px solid var(--win-green);";
@@ -2631,6 +3019,91 @@ async function loadHistory(){
       loadHistory();
     });
   });
+}
+
+function renderAnalyticsDashboard(filteredRows) {
+  if (!filteredRows || filteredRows.length === 0) {
+    $("#history-dashboard").style.display = "none";
+    return;
+  }
+  $("#history-dashboard").style.display = "block";
+
+  // 1. Weekly Spend Trend
+  const now = new Date();
+  const weeklySpend = [0, 0, 0, 0];
+  const MS_IN_DAY = 24 * 60 * 60 * 1000;
+  
+  filteredRows.forEach(h => {
+    const eatenDate = new Date(h.eaten_on);
+    const diffDays = Math.floor((now - eatenDate) / MS_IN_DAY);
+    if (diffDays >= 0 && diffDays < 28) {
+      const weekIndex = 3 - Math.floor(diffDays / 7);
+      if (weekIndex >= 0 && weekIndex < 4) {
+        weeklySpend[weekIndex] += h.amount || 0;
+      }
+    }
+  });
+  
+  const maxWeeklySpend = Math.max(...weeklySpend, 100);
+  const spendChartContainer = $("#spend-chart-container");
+  spendChartContainer.innerHTML = weeklySpend.map((spend, idx) => {
+    const heightPercent = Math.max(10, (spend / maxWeeklySpend) * 90);
+    const weekLabels = ["Wk -3", "Wk -2", "Wk -1", "This Wk"];
+    return `
+      <div style="display: flex; flex-direction: column; align-items: center; width: 22%; height: 100%; justify-content: flex-end;">
+        <span style="font-size: 11px; font-weight: 800; color: var(--win-green); margin-bottom: 2px;">₹${spend.toFixed(0)}</span>
+        <div style="
+          width: 100%; 
+          height: ${heightPercent}%; 
+          background: linear-gradient(180deg, var(--gold), var(--gold-dark)); 
+          border: 2px solid #000; 
+          border-bottom: none;
+          border-radius: 6px 6px 0 0;
+          box-shadow: 2px 0 0 #000;
+          transition: height 0.5s ease-out;
+        "></div>
+        <span style="font-size: 10px; font-weight: 800; color: #1a0630; margin-top: 4px; white-space: nowrap;">${weekLabels[idx]}</span>
+      </div>
+    `;
+  }).join('');
+
+  // 2. Cuisine Preferences Chart
+  const cuisineCounts = {};
+  filteredRows.forEach(h => {
+    const itemIds = (h.item_id || "").split(",");
+    itemIds.forEach(id => {
+      const it = itemsCache.find(x => x.id === id);
+      const cat = it ? (it.category || "General") : "General";
+      const catTitle = cat.charAt(0).toUpperCase() + cat.slice(1);
+      cuisineCounts[catTitle] = (cuisineCounts[catTitle] || 0) + 1;
+    });
+  });
+
+  const sortedCuisines = Object.entries(cuisineCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4);
+    
+  const totalCuisineOrders = sortedCuisines.reduce((sum, item) => sum + item[1], 0) || 1;
+  const cuisineChartContainer = $("#cuisine-chart-container");
+  
+  if (sortedCuisines.length === 0) {
+    cuisineChartContainer.innerHTML = `<div style="font-size:12px; opacity:0.6; text-align:center;">No cuisine data available.</div>`;
+  } else {
+    cuisineChartContainer.innerHTML = sortedCuisines.map(([name, count]) => {
+      const pct = ((count / totalCuisineOrders) * 100).toFixed(0);
+      return `
+        <div style="margin-bottom: 2px;">
+          <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 800; margin-bottom: 2px;">
+            <span style="font-family:'Baloo 2', sans-serif;">${name}</span>
+            <span style="font-family:'Baloo 2', sans-serif; font-weight:800;">${count} meals (${pct}%)</span>
+          </div>
+          <div style="width: 100%; background: rgba(0,0,0,0.1); border: 2px solid #000; border-radius: 6px; height: 12px; overflow: hidden; box-shadow: 1px 1px 0 #000;">
+            <div style="width: ${pct}%; background: var(--hot-pink); height: 100%; border-right: 2px solid #000;"></div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
 }
 
 $("#btn-config-api").addEventListener("click", async () => {
