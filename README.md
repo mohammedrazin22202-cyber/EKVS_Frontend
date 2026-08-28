@@ -25,3 +25,12 @@ To point to your hosted Render backend (e.g. `https://ekvs-backend.onrender.com`
 6. Click **Deploy**!
 
 Your frontend will be instantly live on a fast global Vercel CDN URL (e.g., `https://ekvs-food-decider.vercel.app`).
+
+---
+
+## ✨ Features Highlight
+
+- **Retro Synth Audio FX:** Dynamically synthesized retro sound effects using the Web Audio API for interactive clicks, rolling reels, and successes.
+- **Local User Profiles:** Manage user dining profiles directly in the browser using `localStorage`.
+- **Group Dining Polls:** Real-time synchronized room polls using MongoDB backend connection.
+
