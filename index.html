@@ -626,7 +626,6 @@
           <h4 class="display" style="margin: 0 0 8px; font-size: 14px; color: var(--deep-purple-2);">Top Cuisine Breakdown</h4>
           <div id="cuisine-chart-container" style="display: flex; flex-direction: column; gap: 6px; justify-content: center; height: 120px; overflow-y: auto;">
             <!-- Dynamic progress bars -->
-          </div>
         </div>
       </div>
       <!-- Cumulative Spending & Savings SVG Chart -->
@@ -1017,6 +1016,7 @@ let placesCache = [];
 let itemsCache = [];
 let expandedPlaces = new Set();
 let userProfiles = ["MegaTron"];
+let allSuggestionsCache = [];
 let currentSuggestions = [];
 let currentSuggestionIndex = 0;
 let restaurantRerollCount = 0;
@@ -1025,6 +1025,8 @@ let seenPlaceIdsInSession = new Set();
 let seenItemIdsForCurrentPlace = new Set();
 let revealedSuggestions = [];
 let activeRevealedIndex = 0;
+let sessionVetoedPlaceIds = new Set();
+let sessionVetoedPlaceNames = {};
 let pollTimer = null;
 
 let currentPollCode = null;
@@ -1676,6 +1678,8 @@ function runSpinWheelAnimation(people) {
 
 
 $("#btn-suggest").addEventListener("click", async ()=>{
+  sessionVetoedPlaceIds.clear();
+  sessionVetoedPlaceNames = {};
   const budget = parseFloat($("#in-budget").value);
   const people = parseInt($("#in-people").value);
   const preference = $("#in-pref").value;
@@ -1748,7 +1752,8 @@ $("#btn-suggest").addEventListener("click", async ()=>{
       return;
     }
 
-    currentSuggestions = data.suggestions;
+    allSuggestionsCache = data.suggestions;
+    currentSuggestions = allSuggestionsCache.filter(cand => !sessionVetoedPlaceIds.has(cand.place_id));
 
     // If upgrade was accepted, make sure the exact upgraded meal is #1 at index 0!
     if (acceptedUpgrade && upgradeData && upgradeData.upgrade) {
@@ -1760,6 +1765,12 @@ $("#btn-suggest").addEventListener("click", async ()=>{
       } else {
         currentSuggestions.unshift(upItem);
       }
+    }
+
+    if (currentSuggestions.length === 0) {
+      $("#btn-suggest").disabled = false;
+      $("#results").innerHTML = `<div class="empty">No suggestions found matching your budget/preference. Try raising the budget! 😬</div>`;
+      return;
     }
 
     currentSuggestionIndex = 0;
@@ -1901,13 +1912,30 @@ function renderSuggestionCard(people){
         </button>
       </div>
 
-      <div style="margin-top: 10px;">
+      <div style="margin-top: 10px; display: flex; gap: 10px;">
+        <button id="btn-veto-restaurant" 
+                style="flex: 1; background: var(--prize-red); color: #fff; border: 3px solid #000; border-radius: 10px; padding: 10px 16px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 0 #8c0012; font-family: 'Baloo 2', sans-serif; font-size: 15px;">
+          🚫 VETO PLACE
+        </button>
         <button id="btn-add-meal-to-place" 
-                style="width: 100%; background: var(--hot-pink); color: #fff; border: 3px solid #000; border-radius: 10px; padding: 10px 16px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 0 #8c0a4d; font-family: 'Baloo 2', sans-serif; font-size: 15px;">
-          ➕ ADD NEW MEAL TO ${s.place_name.toUpperCase()}
+                style="flex: 1.5; background: var(--hot-pink); color: #fff; border: 3px solid #000; border-radius: 10px; padding: 10px 16px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 0 #8c0a4d; font-family: 'Baloo 2', sans-serif; font-size: 15px;">
+          ➕ ADD MEAL TO ${s.place_name.substring(0, 15)}${s.place_name.length > 15 ? '...' : ''}
         </button>
       </div>
     </div>
+    ${sessionVetoedPlaceIds.size > 0 ? `
+      <div style="margin-top: 15px; text-align: left; background: rgba(255,255,255,0.06); padding: 12px; border-radius: 12px; border: 2.5px dashed var(--prize-red); box-shadow: 0 4px 0 #000;">
+        <div style="font-weight: 800; font-size: 13px; color: var(--cream); margin-bottom: 6px;">🚫 VETOED PLACES IN THIS SESSION:</div>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+          ${Array.from(sessionVetoedPlaceIds).map(pid => `
+            <span style="background: rgba(232, 17, 45, 0.15); border: 2px solid var(--prize-red); border-radius: 6px; padding: 4px 8px; font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; gap: 6px; color: var(--cream);">
+              ${sessionVetoedPlaceNames[pid] || 'Restaurant'}
+              <button class="unveto-btn" data-place-id="${pid}" style="background:none; border:none; color:var(--prize-red); cursor:pointer; font-weight:800; padding:0; font-size:12px; line-height: 1;">✕</button>
+            </span>
+          `).join('')}
+        </div>
+      </div>
+    ` : ""}
   `;
 
   // Wire up add meal to place button
@@ -1917,6 +1945,27 @@ function renderSuggestionCard(people){
       AddNewMealModal.show(activeRestaurant.place_name);
     });
   }
+
+  // Wire up veto button
+  const vetoBtn = $("#btn-veto-restaurant");
+  if (vetoBtn) {
+    vetoBtn.addEventListener("click", async () => {
+      await vetoActiveRestaurant(people);
+    });
+  }
+
+  // Wire up unveto buttons
+  $all(".unveto-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const pid = btn.dataset.placeId;
+      sessionVetoedPlaceIds.delete(pid);
+      delete sessionVetoedPlaceNames[pid];
+      
+      // Re-filter suggestions
+      currentSuggestions = allSuggestionsCache.filter(cand => !sessionVetoedPlaceIds.has(cand.place_id));
+      renderSuggestionCard(people);
+    });
+  });
 
   // Wire up surf tab buttons
   $all(".surf-tab-btn").forEach(btn => {
@@ -2129,6 +2178,56 @@ function renderSuggestionCard(people){
       claimBtn.disabled = false;
     }
   });
+}
+
+async function vetoActiveRestaurant(people) {
+  if (!revealedSuggestions || revealedSuggestions.length === 0) return;
+  const activeRestaurant = revealedSuggestions[activeRevealedIndex];
+  const placeId = activeRestaurant.place_id;
+  const placeName = activeRestaurant.place_name;
+
+  if (!await Modal.confirm(`Are you sure you want to veto "${placeName}" for this session? It won't be suggested again.`)) {
+    return;
+  }
+
+  sessionVetoedPlaceIds.add(placeId);
+  sessionVetoedPlaceNames[placeId] = placeName;
+
+  revealedSuggestions = revealedSuggestions.filter(r => r.place_id !== placeId);
+  currentSuggestions = allSuggestionsCache.filter(cand => !sessionVetoedPlaceIds.has(cand.place_id));
+
+  if (revealedSuggestions.length === 0) {
+    let nextIdx = -1;
+    for (let i = 0; i < currentSuggestions.length; i++) {
+      const cand = currentSuggestions[i];
+      if (!seenPlaceIdsInSession.has(cand.place_id)) {
+        nextIdx = i;
+        break;
+      }
+    }
+
+    if (nextIdx !== -1) {
+      const cand = currentSuggestions[nextIdx];
+      cand.revealedMeals = [cand];
+      cand.activeMealIndex = 0;
+      seenPlaceIdsInSession.add(cand.place_id);
+      seenItemIdsForCurrentPlace = new Set([cand.item_id]);
+      revealedSuggestions.push(cand);
+      activeRevealedIndex = 0;
+    } else {
+      let fallback = currentSuggestions[0];
+      if (fallback) {
+        fallback.revealedMeals = [fallback];
+        fallback.activeMealIndex = 0;
+        revealedSuggestions.push(fallback);
+        activeRevealedIndex = 0;
+      }
+    }
+  } else {
+    activeRevealedIndex = Math.min(activeRevealedIndex, revealedSuggestions.length - 1);
+  }
+
+  renderSuggestionCard(people);
 }
 
 // Automatically unlock "FIND MY MEAL" button if user changes any search parameters
@@ -2684,6 +2783,36 @@ function renderPollVotingState(poll){
         </div>
       </div>
 
+      <!-- Group Chat Console -->
+      <div style="border-top: 2px dashed rgba(0,0,0,0.15); padding-top: 15px; margin-top: 15px; text-align: left; color: #000;">
+        <div style="font-weight: 800; font-size: 13px; margin-bottom: 8px; color: #1a0630; display: flex; align-items: center; gap: 6px;">
+          💬 Room Discussion Chat:
+        </div>
+        <div id="poll-chat-messages" style="height: 120px; overflow-y: auto; background: rgba(0,0,0,0.05); border: 2px solid #000; border-radius: 8px; padding: 8px; font-size: 13px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 6px;">
+          ${(poll.chat || []).map(msg => `
+            <div>
+              <strong style="color: ${msg.who.toLowerCase() === who.toLowerCase() ? 'var(--hot-pink)' : 'var(--deep-purple-2)'};">${msg.who}</strong>: 
+              <span style="font-weight: 600;">${msg.message}</span>
+            </div>
+          `).join('') || '<div style="opacity:0.5; font-weight:800; text-align:center; padding-top:40px;">No messages yet. Say hello! 👋</div>'}
+        </div>
+        <div style="display: flex; gap: 6px;">
+          <input type="text" id="poll-chat-input" placeholder="Type a message..." style="flex: 1; font-size: 13px; padding: 6px 10px; border: 2px solid #000; border-radius: 8px;" />
+          <button id="btn-poll-send-chat" style="
+            background: var(--gold);
+            color: #000;
+            border: 2px solid #000;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-weight: 800;
+            cursor: pointer;
+            font-size: 13px;
+            font-family: 'Baloo 2', sans-serif;
+            box-shadow: 0 2px 0 #000;
+          ">Send</button>
+        </div>
+      </div>
+
       ${isPollCreator ? `
         <button id="btn-close-poll" class="big-cta" style="background: var(--hot-pink); box-shadow: 0 6px 0 #8c0a4d; margin-top: 20px;">
           🔒 CLOSE POLL & CHOOSE WINNER
@@ -2791,6 +2920,51 @@ function renderPollVotingState(poll){
           btn.disabled = false;
         }
       });
+    });
+  }
+
+  // Scroll chat messages to the bottom
+  const chatBox = $("#poll-chat-messages");
+  if (chatBox) {
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  // Bind send chat click listener
+  const btnSendChat = $("#btn-poll-send-chat");
+  if (btnSendChat) {
+    btnSendChat.addEventListener("click", async () => {
+      const chatInputEl = $("#poll-chat-input");
+      const msgText = chatInputEl.value.trim();
+      if (!msgText) return;
+
+      chatInputEl.value = "";
+      
+      try {
+        const res = await fetch(API + `/api/polls/${poll.code}/chat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            who: who,
+            message: msgText
+          })
+        });
+        if (res.ok) {
+          refreshPollRoom();
+        }
+      } catch (e) {
+        console.error("Failed to send chat message:", e);
+      }
+    });
+  }
+
+  // Bind enter key down on chat input
+  const chatInputEl = $("#poll-chat-input");
+  if (chatInputEl) {
+    chatInputEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        $("#btn-poll-send-chat").click();
+      }
     });
   }
 }
