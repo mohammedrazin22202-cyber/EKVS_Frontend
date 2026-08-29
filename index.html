@@ -396,6 +396,11 @@
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
   }
+  .pref-tag.active {
+    background: var(--gold) !important;
+    transform: translateY(2px);
+    box-shadow: 0 0.5px 0 #000 !important;
+  }
 </style>
 </head>
 <body>
@@ -469,17 +474,18 @@
       <label>👥 Number of People</label>
       <input type="number" id="in-people" placeholder="e.g. 2" min="1" value="2" />
 
-      <label>🥗 Preference</label>
-      <select id="in-pref">
-        <option value="">No preference</option>
-        <option value="veg">Veg</option>
-        <option value="non-veg">Non-veg</option>
-        <option value="egg">Egg</option>
-        <option value="spicy">Spicy</option>
-        <option value="dessert">Dessert / Sweet</option>
-        <option value="light">Light / Healthy</option>
-        <option value="street food">Street food</option>
-      </select>
+      <label>🥗 Dietary Preferences (Select multiple!)</label>
+      <div id="pref-tags-container" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
+        <button type="button" class="pref-tag" data-val="veg" style="background:#fff; border:2.5px solid #000; border-radius:10px; padding:6px 12px; font-weight:800; cursor:pointer; font-family:'Baloo 2', sans-serif; font-size:13px; box-shadow:0 2.5px 0 #000; transition:all 0.1s ease;">Veg 🥦</button>
+        <button type="button" class="pref-tag" data-val="non-veg" style="background:#fff; border:2.5px solid #000; border-radius:10px; padding:6px 12px; font-weight:800; cursor:pointer; font-family:'Baloo 2', sans-serif; font-size:13px; box-shadow:0 2.5px 0 #000; transition:all 0.1s ease;">Non-veg 🍖</button>
+        <button type="button" class="pref-tag" data-val="egg" style="background:#fff; border:2.5px solid #000; border-radius:10px; padding:6px 12px; font-weight:800; cursor:pointer; font-family:'Baloo 2', sans-serif; font-size:13px; box-shadow:0 2.5px 0 #000; transition:all 0.1s ease;">Egg 🥚</button>
+        <button type="button" class="pref-tag" data-val="spicy" style="background:#fff; border:2.5px solid #000; border-radius:10px; padding:6px 12px; font-weight:800; cursor:pointer; font-family:'Baloo 2', sans-serif; font-size:13px; box-shadow:0 2.5px 0 #000; transition:all 0.1s ease;">Spicy 🌶️</button>
+        <button type="button" class="pref-tag" data-val="dessert" style="background:#fff; border:2.5px solid #000; border-radius:10px; padding:6px 12px; font-weight:800; cursor:pointer; font-family:'Baloo 2', sans-serif; font-size:13px; box-shadow:0 2.5px 0 #000; transition:all 0.1s ease;">Dessert / Sweet 🍨</button>
+        <button type="button" class="pref-tag" data-val="light" style="background:#fff; border:2.5px solid #000; border-radius:10px; padding:6px 12px; font-weight:800; cursor:pointer; font-family:'Baloo 2', sans-serif; font-size:13px; box-shadow:0 2.5px 0 #000; transition:all 0.1s ease;">Light / Healthy 🥗</button>
+        <button type="button" class="pref-tag" data-val="street food" style="background:#fff; border:2.5px solid #000; border-radius:10px; padding:6px 12px; font-weight:800; cursor:pointer; font-family:'Baloo 2', sans-serif; font-size:13px; box-shadow:0 2.5px 0 #000; transition:all 0.1s ease;">Street food 🍢</button>
+        <button type="button" class="pref-tag" data-val="drink" style="background:#fff; border:2.5px solid #000; border-radius:10px; padding:6px 12px; font-weight:800; cursor:pointer; font-family:'Baloo 2', sans-serif; font-size:13px; box-shadow:0 2.5px 0 #000; transition:all 0.1s ease;">Drink 🥤</button>
+      </div>
+      <input type="hidden" id="in-pref" value="" />
 
       <label>📍 Restaurant Area</label>
       <select id="in-area">
@@ -2820,6 +2826,27 @@ function renderPollWinner(winner){
 
 // Profile management logic
 
+function setPrefTagsFromValue(val) {
+  const activeTags = (val || "").split(",").map(t => t.trim().lower()).filter(Boolean);
+  $all(".pref-tag").forEach(tag => {
+    if (activeTags.includes(tag.dataset.val.toLowerCase())) {
+      tag.classList.add("active");
+    } else {
+      tag.classList.remove("active");
+    }
+  });
+  $("#in-pref").value = activeTags.join(",");
+}
+
+$all(".pref-tag").forEach(tag => {
+  tag.addEventListener("click", () => {
+    tag.classList.toggle("active");
+    const activeTags = Array.from($all(".pref-tag.active")).map(t => t.dataset.val);
+    $("#in-pref").value = activeTags.join(",");
+    unlockFindMealButton();
+  });
+});
+
 function initProfiles() {
   const stored = localStorage.getItem("ekvs_profiles");
   if (stored) {
@@ -2839,6 +2866,23 @@ function initProfiles() {
     userProfiles.map(p => `<option value="${p}">${p}</option>`).join("");
     
   select.value = active;
+  
+  // Set initial tags based on active profile default preference
+  if (active !== "all") {
+    const storedPrefs = localStorage.getItem("ekvs_prefs_" + active.toLowerCase());
+    if (storedPrefs) {
+      try {
+        const parsed = JSON.parse(storedPrefs);
+        setPrefTagsFromValue(parsed.defaultPref || "");
+      } catch (e) {
+        setPrefTagsFromValue("");
+      }
+    } else {
+      setPrefTagsFromValue("");
+    }
+  } else {
+    setPrefTagsFromValue("");
+  }
 }
 
 $("#profile-select").addEventListener("change", (e) => {
@@ -2851,18 +2895,18 @@ $("#profile-select").addEventListener("change", (e) => {
       try {
         const parsed = JSON.parse(storedPrefs);
         if (parsed.defaultPref) {
-          $("#in-pref").value = parsed.defaultPref;
+          setPrefTagsFromValue(parsed.defaultPref);
         } else {
-          $("#in-pref").value = "";
+          setPrefTagsFromValue("");
         }
       } catch (e) {
-        $("#in-pref").value = "";
+        setPrefTagsFromValue("");
       }
     } else {
-      $("#in-pref").value = "";
+      setPrefTagsFromValue("");
     }
   } else {
-    $("#in-pref").value = "";
+    setPrefTagsFromValue("");
   }
   loadHistory();
 });
