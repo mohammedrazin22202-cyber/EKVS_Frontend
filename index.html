@@ -461,6 +461,7 @@
   <button data-tab="claim" class="active">🍽️ Decide Meal</button>
   <button data-tab="manage">🏪 Menu Inventory</button>
   <button data-tab="history">📜 Eating History</button>
+  <button data-tab="leaderboard">🏆 Leaderboard</button>
 </nav>
 
 <main>
@@ -628,6 +629,13 @@
           </div>
         </div>
       </div>
+      <!-- Cumulative Spending & Savings SVG Chart -->
+      <div style="background: rgba(0,0,0,0.04); border: 2.5px solid #000; border-radius: 12px; padding: 12px; min-width: 0; box-shadow: 0 3px 0 #000; margin-top: 16px;">
+        <h4 class="display" style="margin: 0 0 8px; font-size: 14px; color: var(--deep-purple-2);">30-Day Cumulative Spending & Savings</h4>
+        <div id="svg-chart-container" style="width: 100%; height: 160px; position: relative;">
+          <!-- Custom SVG cumulative area chart will render here -->
+        </div>
+      </div>
     </div>
     <div style="text-align: right; margin-bottom: 20px;">
       <button id="btn-open-custom-meal" class="claim-btn" style="background: var(--hot-pink); color: #fff; margin-top: 0; box-shadow: 0 4px 0 #8c0a4d; font-weight: 800;">
@@ -635,6 +643,32 @@
       </button>
     </div>
     <div id="history-list"></div>
+  </section>
+
+  <!-- ================= LEADERBOARD TAB ================= -->
+  <section class="panel" id="tab-leaderboard">
+    <div class="ticket">
+      <h3 class="display" style="margin: 0 0 15px; font-size: 22px; color: var(--hot-pink); -webkit-text-stroke: 1px #000;">🏆 DINE LEADERBOARD</h3>
+      <p style="font-size: 13px; font-weight: 700; opacity: 0.85; margin-bottom: 20px; color: #1a0630;">See who is ruling the dining table! Ranks are updated dynamically as meals are claimed.</p>
+      
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-family: 'Baloo 2', sans-serif;">
+          <thead>
+            <tr style="border-bottom: 3px solid #000; color: #1a0630; font-weight: 800; font-size: 15px;">
+              <th style="padding: 10px;">Rank</th>
+              <th style="padding: 10px;">User Profile</th>
+              <th style="padding: 10px;">Title</th>
+              <th style="padding: 10px; text-align: center;">Meals Eaten</th>
+              <th style="padding: 10px; text-align: right;">Total Spent</th>
+              <th style="padding: 10px; text-align: right;">Savings</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-list">
+            <!-- Dynamically populated rows -->
+          </tbody>
+        </table>
+      </div>
+    </div>
   </section>
 
 </main>
@@ -1407,6 +1441,7 @@ $all("nav.tabs button").forEach(btn=>{
     $("#tab-"+btn.dataset.tab).classList.add("active");
     if(btn.dataset.tab === "manage") loadPlaces();
     if(btn.dataset.tab === "history") loadHistory();
+    if(btn.dataset.tab === "leaderboard") loadLeaderboard();
   });
 });
 
@@ -3065,6 +3100,52 @@ async function loadHistory(){
   });
 }
 
+async function loadLeaderboard() {
+  try {
+    const r = await fetch(API + "/api/leaderboard");
+    const leaderboardData = await r.json();
+
+    const listEl = $("#leaderboard-list");
+    if (!listEl) return;
+
+    if (leaderboardData.length === 0) {
+      listEl.innerHTML = `<tr><td colspan="6" class="empty" style="text-align:center; padding: 20px; color: #1a0630; font-weight:800;">No diner rankings available yet. Go claim some meals! 🎉</td></tr>`;
+      return;
+    }
+
+    // Helper to determine rank name & badge
+    function getRankDetails(totalMeals) {
+      if (totalMeals >= 16) return { name: "Culinary Legend", badge: "👑", color: "var(--gold)" };
+      if (totalMeals >= 9) return { name: "Food Gladiator", badge: "🍖", color: "var(--prize-red)" };
+      if (totalMeals >= 4) return { name: "Gourmet Seeker", badge: "🥗", color: "var(--win-green)" };
+      if (totalMeals >= 1) return { name: "Active Diner", badge: "🐣", color: "var(--hot-pink)" };
+      return { name: "Hungry Rookie", badge: "🥚", color: "var(--cream)" };
+    }
+
+    listEl.innerHTML = leaderboardData.map((row, idx) => {
+      const rankDetails = getRankDetails(row.total_meals);
+      let medal = "";
+      if (idx === 0) medal = "🥇 ";
+      else if (idx === 1) medal = "🥈 ";
+      else if (idx === 2) medal = "🥉 ";
+      else medal = `${idx + 1}. `;
+
+      return `
+        <tr style="border-bottom: 2px solid #000; font-size: 14px; font-weight: 700; color: #1a0630;">
+          <td style="padding: 12px; font-family: 'Luckiest Guy', cursive; font-size: 16px;">${medal}</td>
+          <td style="padding: 12px; color: var(--deep-purple); font-weight: 800;">${row.who}</td>
+          <td style="padding: 12px; font-weight: 800;"><span style="color: ${rankDetails.color}; -webkit-text-stroke: 1px #000; font-family:'Luckiest Guy', cursive; letter-spacing: 0.5px;">${rankDetails.badge} ${rankDetails.name.toUpperCase()}</span></td>
+          <td style="padding: 12px; text-align: center; font-weight: 800;">${row.total_meals}</td>
+          <td style="padding: 12px; text-align: right; color: var(--prize-red); font-weight: 800;">₹${(row.total_spent || 0).toFixed(0)}</td>
+          <td style="padding: 12px; text-align: right; color: var(--win-green); font-weight: 800;">₹${(row.total_savings || 0).toFixed(0)}</td>
+        </tr>
+      `;
+    }).join("");
+  } catch (err) {
+    console.error("Failed to load leaderboard:", err);
+  }
+}
+
 function renderAnalyticsDashboard(filteredRows) {
   if (!filteredRows || filteredRows.length === 0) {
     $("#history-dashboard").style.display = "none";
@@ -3147,6 +3228,113 @@ function renderAnalyticsDashboard(filteredRows) {
         </div>
       `;
     }).join('');
+  }
+
+  // 3. 30-Day Cumulative Spending & Savings SVG Chart
+  const svgContainer = $("#svg-chart-container");
+  if (svgContainer) {
+    const datesList = [];
+    const dayMs = 24 * 60 * 60 * 1000;
+    const todayMidnight = new Date();
+    todayMidnight.setHours(0,0,0,0);
+
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(todayMidnight.getTime() - i * dayMs);
+      datesList.push({
+        dateStr: d.toISOString().split('T')[0],
+        label: d.toLocaleDateString(undefined, {month: 'short', day: 'numeric'}),
+        totalSpent: 0,
+        totalSaved: 0
+      });
+    }
+
+    filteredRows.forEach(h => {
+      const eatenDateStr = new Date(h.eaten_on).toISOString().split('T')[0];
+      const match = datesList.find(d => d.dateStr === eatenDateStr);
+      if (match) {
+        match.totalSpent += h.amount || 0;
+        if (h.budget && h.budget > h.amount) {
+          match.totalSaved += (h.budget - h.amount);
+        }
+      }
+    });
+
+    let cumSpent = 0;
+    let cumSaved = 0;
+    const pointsSpent = [];
+    const pointsSaved = [];
+    datesList.forEach((d, idx) => {
+      cumSpent += d.totalSpent;
+      cumSaved += d.totalSaved;
+      pointsSpent.push({x: idx, y: cumSpent});
+      pointsSaved.push({x: idx, y: cumSaved});
+    });
+
+    const maxVal = Math.max(cumSpent, cumSaved, 100);
+
+    function mapX(xIdx) {
+      return 40 + (xIdx / 29) * 420;
+    }
+    function mapY(val) {
+      return 130 - (val / maxVal) * 115;
+    }
+
+    let spentPathLine = `M ${mapX(0)} ${mapY(pointsSpent[0].y)}`;
+    let spentPathArea = `M ${mapX(0)} 130 L ${mapX(0)} ${mapY(pointsSpent[0].y)}`;
+    for (let i = 1; i < pointsSpent.length; i++) {
+      spentPathLine += ` L ${mapX(i)} ${mapY(pointsSpent[i].y)}`;
+      spentPathArea += ` L ${mapX(i)} ${mapY(pointsSpent[i].y)}`;
+    }
+    spentPathArea += ` L ${mapX(29)} 130 Z`;
+
+    let savedPathLine = `M ${mapX(0)} ${mapY(pointsSaved[0].y)}`;
+    let savedPathArea = `M ${mapX(0)} 130 L ${mapX(0)} ${mapY(pointsSaved[0].y)}`;
+    for (let i = 1; i < pointsSaved.length; i++) {
+      savedPathLine += ` L ${mapX(i)} ${mapY(pointsSaved[i].y)}`;
+      savedPathArea += ` L ${mapX(i)} ${mapY(pointsSaved[i].y)}`;
+    }
+    savedPathArea += ` L ${mapX(29)} 130 Z`;
+
+    svgContainer.innerHTML = `
+      <svg viewBox="0 0 500 160" style="width: 100%; height: 100%; display: block; overflow: visible;">
+        <defs>
+          <linearGradient id="spentGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="var(--hot-pink)" stop-opacity="0.35"/>
+            <stop offset="100%" stop-color="var(--hot-pink)" stop-opacity="0.0"/>
+          </linearGradient>
+          <linearGradient id="savedGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="var(--win-green)" stop-opacity="0.35"/>
+            <stop offset="100%" stop-color="var(--win-green)" stop-opacity="0.0"/>
+          </linearGradient>
+        </defs>
+
+        <line x1="40" y1="${mapY(0)}" x2="480" y2="${mapY(0)}" stroke="#000" stroke-width="2"/>
+        <line x1="40" y1="${mapY(maxVal/2)}" x2="480" y2="${mapY(maxVal/2)}" stroke="#000" stroke-width="1" stroke-dasharray="4,4" opacity="0.3"/>
+        <line x1="40" y1="${mapY(maxVal)}" x2="480" y2="${mapY(maxVal)}" stroke="#000" stroke-width="1" stroke-dasharray="4,4" opacity="0.3"/>
+
+        <text x="32" y="${mapY(0)+4}" text-anchor="end" font-family="'Baloo 2', sans-serif" font-size="9px" font-weight="800" fill="#1a0630">₹0</text>
+        <text x="32" y="${mapY(maxVal/2)+4}" text-anchor="end" font-family="'Baloo 2', sans-serif" font-size="9px" font-weight="800" fill="#1a0630">₹${(maxVal/2).toFixed(0)}</text>
+        <text x="32" y="${mapY(maxVal)+4}" text-anchor="end" font-family="'Baloo 2', sans-serif" font-size="9px" font-weight="800" fill="#1a0630">₹${maxVal.toFixed(0)}</text>
+
+        <path d="${spentPathArea}" fill="url(#spentGrad)"/>
+        <path d="${savedPathArea}" fill="url(#savedGrad)"/>
+
+        <path d="${spentPathLine}" fill="none" stroke="var(--hot-pink)" stroke-width="3" stroke-linecap="round"/>
+        <path d="${savedPathLine}" fill="none" stroke="var(--win-green)" stroke-width="3" stroke-linecap="round"/>
+
+        <text x="${mapX(0)}" y="146" text-anchor="middle" font-family="'Baloo 2', sans-serif" font-size="9px" font-weight="800" fill="#1a0630">${datesList[0].label}</text>
+        <text x="${mapX(14)}" y="146" text-anchor="middle" font-family="'Baloo 2', sans-serif" font-size="9px" font-weight="800" fill="#1a0630">${datesList[14].label}</text>
+        <text x="${mapX(29)}" y="146" text-anchor="middle" font-family="'Baloo 2', sans-serif" font-size="9px" font-weight="800" fill="#1a0630">${datesList[29].label}</text>
+
+        <g transform="translate(180, 155)">
+          <circle cx="0" cy="-4" r="4" fill="var(--hot-pink)" stroke="#000" stroke-width="1"/>
+          <text x="8" y="0" font-family="'Baloo 2', sans-serif" font-size="10px" font-weight="800" fill="#1a0630">Spending</text>
+          
+          <circle cx="85" cy="-4" r="4" fill="var(--win-green)" stroke="#000" stroke-width="1"/>
+          <text x="93" y="0" font-family="'Baloo 2', sans-serif" font-size="10px" font-weight="800" fill="#1a0630">Savings</text>
+        </g>
+      </svg>
+    `;
   }
 }
 
