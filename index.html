@@ -571,6 +571,14 @@
 
   <!-- ================= MANAGE TAB ================= -->
   <section class="panel" id="tab-manage">
+    <div style="margin-bottom: 15px; display: flex; gap: 10px; justify-content: flex-end;">
+      <button id="btn-export-csv" class="claim-btn" style="background: var(--gold); color:#000; margin-top: 0; box-shadow: 0 3px 0 #000; font-weight: 800; font-size: 13px; padding: 6px 12px;">📤 Export CSV</button>
+      <label class="claim-btn" style="background: var(--deep-purple-2); color:#fff; margin-top: 0; box-shadow: 0 3px 0 #000; font-weight: 800; font-size: 13px; padding: 6px 12px; cursor: pointer; display: inline-block; margin: 0;">
+        📥 Import CSV
+        <input type="file" id="input-import-csv" accept=".csv" style="display: none;" />
+      </label>
+    </div>
+    
     <div class="ticket">
       <h3 class="display" style="margin:0 0 10px; font-size:20px;">➕ Add a New Place</h3>
       <label>Place name</label>
@@ -579,6 +587,17 @@
       <input type="text" id="np-area" placeholder="e.g. Anna Nagar" />
       <label>Notes</label>
       <input type="text" id="np-notes" placeholder="anything else" />
+
+      <label style="margin-top:14px; display: flex; align-items: center; gap: 8px;">
+        📸 Auto-Fill Menu via Photo
+      </label>
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+        <label class="claim-btn" style="background: var(--win-green); color:#000; margin-top: 0; box-shadow: 0 3px 0 #0b6b3c; font-weight: 800; font-size: 13px; padding: 6px 12px; cursor: pointer; display: inline-block; margin: 0;">
+          Scan Menu Image
+          <input type="file" id="input-ocr-menu" accept="image/*" style="display: none;" />
+        </label>
+        <span id="ocr-status-text" style="font-size: 12px; font-weight: 800; opacity: 0.7; color: #000;">Upload menu picture to auto-populate rows</span>
+      </div>
 
       <label style="margin-top:20px;">🍽️ Menu Items</label>
       <div id="np-items-wrap"></div>
@@ -634,9 +653,33 @@
         <div id="svg-chart-container" style="width: 100%; height: 160px; position: relative;">
           <!-- Custom SVG cumulative area chart will render here -->
         </div>
+    </div>
+
+    <!-- Eating Habits Calendar View -->
+    <div id="history-calendar-view" style="
+      display: none;
+      background: var(--cream);
+      color: #1a0630;
+      border: 4px solid #000;
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 20px;
+      box-shadow: 0 6px 0 #000;
+    ">
+      <h3 class="display" style="margin: 0 0 15px; font-size: 20px; color: var(--hot-pink); -webkit-text-stroke: 1px #000;">📅 30-DAY EATING CALENDAR</h3>
+      <div id="calendar-grid-container" style="
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 6px;
+      ">
+        <!-- Calendar days populate dynamically -->
       </div>
     </div>
+
     <div style="text-align: right; margin-bottom: 20px;">
+      <button id="btn-toggle-calendar" class="claim-btn" style="background: var(--deep-purple-2); color: #fff; margin-top: 0; box-shadow: 0 4px 0 #000; font-weight: 800; margin-right: 8px;">
+        📅 VIEW CALENDAR GRID
+      </button>
       <button id="btn-open-custom-meal" class="claim-btn" style="background: var(--hot-pink); color: #fff; margin-top: 0; box-shadow: 0 4px 0 #8c0a4d; font-weight: 800;">
         ➕ REGISTER CUSTOM MEAL
       </button>
@@ -849,6 +892,44 @@
   </div>
 </div>
 
+
+<!-- Split Bill Modal Dialog -->
+<div id="split-bill-modal" style="
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(22, 4, 36, 0.85);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+">
+  <div class="ticket" style="
+    max-width: 400px;
+    width: 100%;
+    margin-bottom: 0;
+    box-shadow: 0 8px 0 #000, 0 8px 24px rgba(0,0,0,.6);
+  ">
+    <h3 class="display" style="margin:0 0 10px; font-size:22px; color: var(--hot-pink);">Split the Bill 💳</h3>
+    <p style="font-size: 13px; font-weight: 700; opacity: 0.8; margin-bottom: 15px; color: #1a0630;">Select profiles sharing this meal. The cost will be divided equally.</p>
+    
+    <div id="split-profiles-list" style="max-height: 160px; overflow-y: auto; margin-bottom: 20px; border: 2.5px solid #000; border-radius: 10px; background: #fff; padding: 8px; display: flex; flex-direction: column; gap: 8px;">
+      <!-- Checkboxes populate dynamically -->
+    </div>
+    
+    <div style="font-weight: 800; font-size: 14px; margin-bottom: 20px; color: var(--prize-red);">
+      Divided amount: <span id="split-amount-calc">₹0</span> per person
+    </div>
+    
+    <div style="display: flex; gap: 12px; justify-content: flex-end;">
+      <button id="split-btn-cancel" class="claim-btn" style="background: var(--prize-red); color: #fff; margin-top: 0; box-shadow: 0 3px 0 #8c0012; font-weight: 800;">Cancel</button>
+      <button id="split-btn-save" class="claim-btn" style="background: var(--win-green); color: #000; margin-top: 0; box-shadow: 0 3px 0 #0b6b3c; font-weight: 800;">Claim Split</button>
+    </div>
+  </div>
+</div>
+
+
 <!-- Add New Meal to Suggested Restaurant Modal Dialog -->
 <div id="add-new-meal-modal" style="
   display: none;
@@ -1028,6 +1109,301 @@ let activeRevealedIndex = 0;
 let sessionVetoedPlaceIds = new Set();
 let sessionVetoedPlaceNames = {};
 let pollTimer = null;
+
+let currentPollCode = null;
+let isPollCreator = false;
+let userHasVoted = false;
+let pollSocket = null;
+
+function connectPollWebSocket(code) {
+  if (pollSocket) {
+    try { pollSocket.close(); } catch(e) {}
+  }
+  
+  let wsProtocol = "ws:";
+  let wsHost = "localhost:8000";
+  
+  if (API && API.startsWith("http")) {
+    const urlObj = new URL(API);
+    wsProtocol = urlObj.protocol === "https:" ? "wss:" : "ws:";
+    wsHost = urlObj.host;
+  } else {
+    wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    wsHost = window.location.host;
+  }
+  
+  const wsUrl = `${wsProtocol}//${wsHost}/ws/polls/${code}`;
+  
+  try {
+    pollSocket = new WebSocket(wsUrl);
+    
+    pollSocket.onmessage = function(event) {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === "poll_update" && data.poll) {
+          const poll = data.poll;
+          if (pollTimer) {
+            clearInterval(pollTimer);
+            pollTimer = null;
+          }
+          
+          if (poll.dictator && (!revealedSuggestions || revealedSuggestions.length === 0 || !revealedSuggestions.includes(poll.dictator))) {
+            const currentRoomEl = $("#results");
+            const isAlreadyShowingDictator = currentRoomEl && currentRoomEl.innerHTML.includes("👑 DINE DICTATOR");
+            if (!isAlreadyShowingDictator && poll.voted_users && poll.voted_users.length > 0) {
+              runDictatorSpinAnimation(poll.voted_users, poll.dictator);
+              return;
+            }
+          }
+          
+          if (!poll.active && poll.winner) {
+            renderPollWinner(poll.winner);
+            closeWebSocket();
+          } else {
+            renderPollVotingState(poll);
+          }
+        }
+      } catch(err) {
+        console.error("WS message parse error:", err);
+      }
+    };
+    
+    pollSocket.onclose = function() {
+      enablePollingFallback();
+    };
+    
+    pollSocket.onerror = function() {
+      enablePollingFallback();
+    };
+  } catch(err) {
+    enablePollingFallback();
+  }
+}
+
+function closeWebSocket() {
+  if (pollSocket) {
+    try { pollSocket.close(); } catch(e) {}
+    pollSocket = null;
+  }
+}
+
+function enablePollingFallback() {
+  if (!pollTimer && currentPollCode) {
+    pollTimer = setInterval(refreshPollRoom, 2000);
+  }
+}
+
+function runDictatorSpinAnimation(votedUsers, dictatorName) {
+  $("#spin-wrap").style.display = "block";
+  $("#results").innerHTML = "";
+  
+  const canvas = document.getElementById("wheel-canvas");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  
+  let segments = [...votedUsers];
+  while (segments.length < 4) {
+    segments = segments.concat(votedUsers);
+  }
+  
+  const colors = ["#FFD447", "#FF2E9F", "#17D97A", "#6441A5"];
+  
+  function drawWheel(angle) {
+    const numSegments = segments.length;
+    const arcSize = (2 * Math.PI) / numSegments;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.beginPath();
+    ctx.arc(140, 140, 134, 0, 2 * Math.PI);
+    ctx.fillStyle = "#000";
+    ctx.fill();
+    
+    for (let i = 0; i < numSegments; i++) {
+      const segAngle = angle + i * arcSize;
+      ctx.beginPath();
+      ctx.moveTo(140, 140);
+      ctx.arc(140, 140, 130, segAngle, segAngle + arcSize);
+      ctx.fillStyle = colors[i % colors.length];
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = "#000";
+      ctx.stroke();
+      
+      ctx.save();
+      ctx.translate(140, 140);
+      ctx.rotate(segAngle + arcSize / 2);
+      ctx.textAlign = "right";
+      ctx.fillStyle = "#000";
+      ctx.font = "bold 14px 'Baloo 2', sans-serif";
+      
+      let txt = segments[i];
+      if (txt.length > 14) txt = txt.substring(0, 12) + "...";
+      ctx.fillText(txt, 115, 5);
+      ctx.restore();
+    }
+    
+    ctx.beginPath();
+    ctx.arc(140, 140, 20, 0, 2 * Math.PI);
+    ctx.fillStyle = "#FFF6DD";
+    ctx.fill();
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = "#000";
+    ctx.stroke();
+    
+    ctx.beginPath();
+    ctx.arc(140, 140, 8, 0, 2 * Math.PI);
+    ctx.fillStyle = "#000";
+    ctx.fill();
+  }
+  
+  let currentAngle = 0;
+  let speed = 25 + Math.random() * 15;
+  const friction = 0.975;
+  const numSegments = segments.length;
+  const arcSize = (2 * Math.PI) / numSegments;
+  
+  let lastBoundaryIndex = -1;
+  
+  function animate() {
+    currentAngle += speed * (Math.PI / 180);
+    speed *= friction;
+    
+    const pointerAngle = 1.5 * Math.PI;
+    const relativeAngle = (pointerAngle - currentAngle) % (2 * Math.PI);
+    const normalizedAngle = relativeAngle < 0 ? relativeAngle + 2 * Math.PI : relativeAngle;
+    const currentSegmentIndex = Math.floor(normalizedAngle / arcSize);
+    
+    if (currentSegmentIndex !== lastBoundaryIndex) {
+      AudioFX.tick();
+      lastBoundaryIndex = currentSegmentIndex;
+    }
+    
+    drawWheel(currentAngle);
+    
+    if (speed > 0.08) {
+      requestAnimationFrame(animate);
+    } else {
+      setTimeout(() => {
+        $("#spin-wrap").style.display = "none";
+        AudioFX.success();
+        if (window.confetti) {
+          confetti({ particleCount: 140, spread: 90, origin: { y: 0.6 } });
+        }
+        Modal.alert(`🎯 The Dine Dictator is selected: ${dictatorName}!`, "👑 DICTATOR CHOSEN").then(() => {
+          refreshPollRoom();
+        });
+      }, 500);
+    }
+  }
+  animate();
+}
+
+const SplitBillModal = {
+  el: $("#split-bill-modal"),
+  list: $("#split-profiles-list"),
+  calc: $("#split-amount-calc"),
+  btnCancel: $("#split-btn-cancel"),
+  btnSave: $("#split-btn-save"),
+  resolve: null,
+  
+  show(totalAmount, placeId, itemId, budget, suggestedWho) {
+    let html = userProfiles.map(profile => `
+      <label style="display: flex; align-items: center; gap: 10px; margin: 0; font-weight: 800; font-size: 14px; cursor: pointer; color: #000;">
+        <input type="checkbox" value="${profile}" class="split-checkbox" style="width: 18px; height: 18px; cursor: pointer;" ${profile.toLowerCase() === suggestedWho.toLowerCase() ? "checked" : ""}>
+        ${profile}
+      </label>
+    `).join('');
+    this.list.innerHTML = html;
+    
+    const updateCalculation = () => {
+      const checked = Array.from(this.list.querySelectorAll(".split-checkbox:checked"));
+      const count = checked.length || 1;
+      const perPerson = (totalAmount / count).toFixed(2);
+      this.calc.textContent = `₹${perPerson}`;
+    };
+    
+    this.list.addEventListener("change", updateCalculation);
+    updateCalculation();
+    
+    this.el.style.display = "flex";
+    
+    return new Promise((resolve) => {
+      this.resolve = (success) => {
+        this.el.style.display = "none";
+        if (success) {
+          const checked = Array.from(this.list.querySelectorAll(".split-checkbox:checked")).map(cb => cb.value);
+          resolve(checked);
+        } else {
+          resolve(null);
+        }
+      };
+    });
+  }
+};
+
+$("#split-btn-cancel").addEventListener("click", () => {
+  SplitBillModal.resolve(false);
+});
+$("#split-btn-save").addEventListener("click", () => {
+  const checked = Array.from($("#split-profiles-list").querySelectorAll(".split-checkbox:checked"));
+  if (checked.length === 0) {
+    Modal.alert("Select at least one profile to split with!");
+    return;
+  }
+  SplitBillModal.resolve(true);
+});
+
+async function claimMealAction(claimBtn, people, budgetVal) {
+  claimBtn.disabled = true;
+  claimBtn.textContent = "Selecting...";
+  const activeProfile = $("#profile-select").value;
+  let suggestedWho = activeProfile === "all" ? userProfiles[0] : activeProfile;
+  const amount = parseFloat(claimBtn.dataset.amount);
+  
+  const confirmSplit = await Modal.confirm("Would you like to split the bill with other profiles?", "Split Bill?");
+  let selectedProfiles = [suggestedWho];
+  
+  if (confirmSplit) {
+    const splitWith = await SplitBillModal.show(amount, claimBtn.dataset.place, claimBtn.dataset.item, budgetVal, suggestedWho);
+    if (splitWith) {
+      selectedProfiles = splitWith;
+    } else {
+      claimBtn.textContent = "✅ SELECT THIS MEAL";
+      claimBtn.disabled = false;
+      return false;
+    }
+  }
+  
+  const perPersonAmount = roundToTwo(amount / selectedProfiles.length);
+  const perPersonBudget = roundToTwo(budgetVal / selectedProfiles.length);
+  
+  try {
+    for (const who of selectedProfiles) {
+      await fetch(API + "/api/history", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          place_id: claimBtn.dataset.place,
+          item_id: claimBtn.dataset.item,
+          people: people,
+          amount: perPersonAmount,
+          budget: perPersonBudget,
+          who: who
+        })
+      });
+    }
+    
+    claimBtn.textContent = "🍽️ SELECTED!";
+    claimBtn.classList.add("claimed");
+    if (window.confetti) { confetti({ particleCount: 60, spread: 60, origin: { y: 0.7 } }); }
+    return true;
+  } catch (e) {
+    claimBtn.textContent = "Failed, tap to retry";
+    claimBtn.disabled = false;
+    return false;
+  }
+}
+
 
 let currentPollCode = null;
 let isPollCreator = false;
@@ -2138,31 +2514,8 @@ function renderSuggestionCard(people){
   // Wire up select
   const claimBtn = $("#results .claim-btn");
   claimBtn.addEventListener("click", async () => {
-    claimBtn.disabled = true;
-    claimBtn.textContent = "Selecting...";
-    const activeProfile = $("#profile-select").value;
-    let who = activeProfile;
-    if (activeProfile === "all") {
-      who = (userProfiles.length > 1 ? (await Modal.prompt("Who ate this meal?", userProfiles[0], "Select Profile") || userProfiles[0]) : userProfiles[0]);
-    }
-    try {
-      await fetch(API + "/api/history", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          place_id: claimBtn.dataset.place,
-          item_id: claimBtn.dataset.item,
-          people: people,
-          amount: parseFloat(claimBtn.dataset.amount),
-          budget: parseFloat($("#in-budget").value) || 0.0,
-          who: who
-        })
-      });
-      claimBtn.textContent = "🍽️ SELECTED!";
-      claimBtn.classList.add("claimed");
-      if (window.confetti) { confetti({ particleCount: 60, spread: 60, origin: { y: 0.7 } }); }
-
-      // Hide recommendations after selection
+    const success = await claimMealAction(claimBtn, people, parseFloat($("#in-budget").value) || 0.0);
+    if (success) {
       setTimeout(() => {
         const resultsDiv = $("#results");
         resultsDiv.style.transition = "opacity 0.6s ease";
@@ -2173,9 +2526,6 @@ function renderSuggestionCard(people){
           unlockFindMealButton();
         }, 600);
       }, 1200);
-    } catch (e) {
-      claimBtn.textContent = "Failed, tap to retry";
-      claimBtn.disabled = false;
     }
   });
 }
@@ -2660,6 +3010,8 @@ function startPollRoomTracking(){
   $("#btn-suggest").disabled = false;
   $("#btn-create-poll").disabled = false;
   
+  connectPollWebSocket(currentPollCode);
+  
   refreshPollRoom();
   pollTimer = setInterval(refreshPollRoom, 2000);
 }
@@ -2667,6 +3019,9 @@ function startPollRoomTracking(){
 async function refreshPollRoom(){
   if (!currentPollCode) {
     if (pollTimer) clearInterval(pollTimer);
+    return;
+  }
+  if (pollSocket && pollSocket.readyState === WebSocket.OPEN) {
     return;
   }
   
@@ -2693,6 +3048,7 @@ async function refreshPollRoom(){
   }
 }
 
+
 function renderPollVotingState(poll){
   const resultsDiv = $("#results");
   const activeProfile = $("#profile-select").value;
@@ -2703,43 +3059,79 @@ function renderPollVotingState(poll){
 
   const totalVotes = Object.values(poll.votes).reduce((a, b) => a + b, 0);
   
-  let candidatesHTML = poll.candidates.map(c => {
-    const count = poll.votes[c.id] || 0;
-    const pct = totalVotes > 0 ? ((count / totalVotes) * 100).toFixed(0) : 0;
-    
-    if (userHasVoted) {
-      return `
-        <div style="background: rgba(0,0,0,0.06); border: 2px solid var(--gold); border-radius: 10px; padding: 12px; margin-bottom: 10px; text-align: left;">
-          <div style="display: flex; justify-content: space-between; font-weight: 800; font-size: 14px;">
-            <span>${c.item_name} <span style="opacity: 0.6; font-size: 12px;">@ ${c.place_name}</span></span>
-            <span style="color: var(--win-green);">${count} votes (${pct}%)</span>
-          </div>
-          <div style="width: 100%; background: rgba(255,255,255,0.1); border-radius: 4px; height: 8px; margin-top: 8px; overflow: hidden;">
-            <div style="width: 0%; background: var(--win-green); height: 100%; transition: width 0.5s ease-out;" class="poll-bar" data-pct="${pct}"></div>
-          </div>
-        </div>
-      `;
-    } else {
-      return `
-        <button class="vote-choice-btn" data-candidate="${c.id}" style="
+  const isDictatorRoom = !!poll.dictator;
+  const isMeDictator = isDictatorRoom && (poll.dictator.toLowerCase() === who.toLowerCase());
+  
+  let candidatesHTML = "";
+  if (isDictatorRoom) {
+    if (isMeDictator) {
+      candidatesHTML = poll.candidates.map(c => `
+        <button class="dictate-choice-btn" data-candidate="${c.id}" style="
           width: 100%;
           text-align: left;
-          background: var(--cream);
+          background: var(--win-green);
           color: #000;
           border: 3px solid #000;
           border-radius: 10px;
           padding: 12px;
           margin-bottom: 10px;
           font-weight: 800;
-          font-family: 'Baloo 2', sans-serif;
           cursor: pointer;
           box-shadow: 0 4px 0 #000;
+          font-family: 'Baloo 2', sans-serif;
         ">
-          👍 ${c.item_name} <span style="opacity: 0.6; font-size: 12px; font-weight: 600;">@ ${c.place_name}</span>
+          👑 DICTATE MEAL: ${c.item_name} @ ${c.place_name}
         </button>
+      `).join("");
+    } else {
+      candidatesHTML = `
+        <div style="font-size: 14px; font-weight: 800; color: var(--prize-red); margin: 10px 0; background: rgba(232, 17, 45, 0.1); border: 2px solid var(--prize-red); border-radius: 8px; padding: 10px; text-align: center;">
+          👑 DINE DICTATOR: ${poll.dictator.toUpperCase()} (HAS ULTIMATE CHOICE)
+        </div>
+        <div style="font-size: 13px; font-weight: 700; opacity: 0.7; padding: 10px 0; text-align: center;">
+          ⏳ Waiting for ${poll.dictator} to dictate the winning meal...
+        </div>
       `;
     }
-  }).join("");
+  } else {
+    candidatesHTML = poll.candidates.map(c => {
+      const count = poll.votes[c.id] || 0;
+      const pct = totalVotes > 0 ? ((count / totalVotes) * 100).toFixed(0) : 0;
+      
+      if (userHasVoted) {
+        return `
+          <div style="background: rgba(0,0,0,0.06); border: 2px solid var(--gold); border-radius: 10px; padding: 12px; margin-bottom: 10px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; font-weight: 800; font-size: 14px;">
+              <span>${c.item_name} <span style="opacity: 0.6; font-size: 12px;">@ ${c.place_name}</span></span>
+              <span style="color: var(--win-green);">${count} votes (${pct}%)</span>
+            </div>
+            <div style="width: 100%; background: rgba(255,255,255,0.1); border-radius: 4px; height: 8px; margin-top: 8px; overflow: hidden;">
+              <div style="width: 0%; background: var(--win-green); height: 100%; transition: width 0.5s ease-out;" class="poll-bar" data-pct="${pct}"></div>
+            </div>
+          </div>
+        `;
+      } else {
+        return `
+          <button class="vote-choice-btn" data-candidate="${c.id}" style="
+            width: 100%;
+            text-align: left;
+            background: var(--cream);
+            color: #000;
+            border: 3px solid #000;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+            font-weight: 800;
+            font-family: 'Baloo 2', sans-serif;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #000;
+          ">
+            👍 ${c.item_name} <span style="opacity: 0.6; font-size: 12px; font-weight: 600;">@ ${c.place_name}</span>
+          </button>
+        `;
+      }
+    }).join("");
+  }
 
   resultsDiv.innerHTML = `
     <div class="prize-card" style="text-align: center;">
@@ -2814,13 +3206,22 @@ function renderPollVotingState(poll){
       </div>
 
       ${isPollCreator ? `
-        <button id="btn-close-poll" class="big-cta" style="background: var(--hot-pink); box-shadow: 0 6px 0 #8c0a4d; margin-top: 20px;">
-          🔒 CLOSE POLL & CHOOSE WINNER
-        </button>
-      ` : `
-        <div style="font-size: 12px; font-weight: 800; opacity: 0.6; padding: 10px 0;">
-          ⏳ Waiting for host to close the poll...
+        <div style="display: flex; gap: 10px;">
+          <button id="btn-close-poll" class="big-cta" style="flex: 1; background: var(--hot-pink); box-shadow: 0 6px 0 #8c0a4d; margin-top: 20px; color: #fff;">
+            🔒 CLOSE & CHOOSE WINNER
+          </button>
+          ${!isDictatorRoom ? `
+            <button id="btn-dictator-spin" class="big-cta" style="flex: 1; background: var(--gold); box-shadow: 0 6px 0 #000; margin-top: 20px; color: #000;">
+              🎯 DICTATOR SPIN
+            </button>
+          ` : ""}
         </div>
+      ` : `
+        ${!isDictatorRoom ? `
+          <div style="font-size: 12px; font-weight: 800; opacity: 0.6; padding: 10px 0;">
+            ⏳ Waiting for host to close the poll...
+          </div>
+        ` : ""}
       `}
     </div>
   `;
@@ -2894,7 +3295,55 @@ function renderPollVotingState(poll){
         Modal.alert("Failed to close poll.");
       }
     });
+
+    const spinBtn = $("#btn-dictator-spin");
+    if (spinBtn) {
+      spinBtn.addEventListener("click", async () => {
+        if (!poll.voted_users || poll.voted_users.length === 0) {
+          Modal.alert("No one has voted yet! Need at least one voter to select a dictator.");
+          return;
+        }
+        spinBtn.disabled = true;
+        try {
+          const res = await fetch(API + `/api/polls/${poll.code}/dictator`, { method: "POST" });
+          const data = await res.json();
+          if (!res.ok) {
+            Modal.alert(data.detail || "Failed to trigger Dine Dictator.");
+            spinBtn.disabled = false;
+          }
+        } catch(err) {
+          Modal.alert("Connection error starting dictator selection.");
+          spinBtn.disabled = false;
+        }
+      });
+    }
   }
+
+  $all(".dictate-choice-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const candidateId = btn.dataset.candidate;
+      btn.disabled = true;
+      try {
+        const res = await fetch(API + `/api/polls/${poll.code}/dictator_close`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ candidate_id: candidateId, who: who })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          clearInterval(pollTimer);
+          renderPollWinner(data.winner);
+          currentPollCode = null;
+        } else {
+          Modal.alert(data.detail || "Failed to dictate choice.");
+          btn.disabled = false;
+        }
+      } catch(err) {
+        Modal.alert("Connection error dictating winner.");
+        btn.disabled = false;
+      }
+    });
+  });
 
   if (!userHasVoted) {
     $all(".vote-choice-btn").forEach(btn => {
@@ -2996,27 +3445,8 @@ function renderPollWinner(winner){
 
   const claimBtn = $("#results .claim-btn");
   claimBtn.addEventListener("click", async () => {
-    claimBtn.disabled = true;
-    claimBtn.textContent = "Selecting...";
-    const activeProfile = $("#profile-select").value;
-    const who = activeProfile === "all" ? "MegaTron" : activeProfile;
-    try {
-      await fetch(API + "/api/history", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          place_id: claimBtn.dataset.place,
-          item_id: claimBtn.dataset.item,
-          people: people,
-          amount: parseFloat(claimBtn.dataset.amount),
-          budget: parseFloat($("#in-budget").value) || 0.0,
-          who: who
-        })
-      });
-      claimBtn.textContent = "🍽️ SELECTED!";
-      claimBtn.classList.add("claimed");
-      if (window.confetti) { confetti({ particleCount: 60, spread: 60, origin: { y: 0.7 } }); }
-
+    const success = await claimMealAction(claimBtn, people, parseFloat($("#in-budget").value) || 0.0);
+    if (success) {
       setTimeout(() => {
         const resultsDiv = $("#results");
         resultsDiv.style.transition = "opacity 0.6s ease";
@@ -3026,9 +3456,6 @@ function renderPollWinner(winner){
           resultsDiv.style.opacity = "1";
         }, 600);
       }, 1200);
-    } catch (e) {
-      claimBtn.textContent = "Failed, tap to retry";
-      claimBtn.disabled = false;
     }
   });
 }
@@ -3145,6 +3572,79 @@ async function loadHistory(){
   let filteredRows = rows;
   if (activeProfile !== "all") {
     filteredRows = rows.filter(h => h.who && h.who.toLowerCase() === activeProfile.toLowerCase());
+  }
+  
+  // Calculate dining streak and badges
+  let streak = 0;
+  const activeBadges = [];
+  
+  if (activeProfile !== "all") {
+    const uniqueDays = [...new Set(filteredRows.map(h => h.eaten_on.split('T')[0]))].sort().reverse();
+    if (uniqueDays.length > 0) {
+      const todayStr = new Date().toISOString().split('T')[0];
+      const yesterdayStr = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+      
+      let checkDateStr = uniqueDays[0];
+      if (checkDateStr === todayStr || checkDateStr === yesterdayStr) {
+        streak = 1;
+        let nextExpected = new Date(new Date(checkDateStr).getTime() - 86400000).toISOString().split('T')[0];
+        for (let i = 1; i < uniqueDays.length; i++) {
+          if (uniqueDays[i] === nextExpected) {
+            streak++;
+            nextExpected = new Date(new Date(nextExpected).getTime() - 86400000).toISOString().split('T')[0];
+          } else {
+            break;
+          }
+        }
+      }
+    }
+    
+    // Achievements
+    const hasMidnightOwl = filteredRows.some(h => {
+      const hour = new Date(h.eaten_on).getHours();
+      return hour >= 23 || hour <= 4;
+    });
+    if (hasMidnightOwl) activeBadges.push({ text: "Midnight Owl 🦉", desc: "Logged a meal between 11 PM and 4 AM" });
+    
+    const thriftyCount = filteredRows.filter(h => h.budget && h.budget > h.amount && (h.budget - h.amount) > 100).length;
+    if (thriftyCount >= 3) activeBadges.push({ text: "Thrifty Guru 💰", desc: "Saved > ₹100 from budget at least 3 times" });
+    
+    const categorySet = new Set();
+    filteredRows.forEach(h => {
+      const itemIds = (h.item_id || "").split(",");
+      itemIds.forEach(id => {
+        const it = itemsCache.find(x => x.id === id);
+        if (it && it.category) categorySet.add(it.category.toLowerCase());
+      });
+    });
+    if (categorySet.size >= 3) activeBadges.push({ text: "Globetrotter 🧭", desc: "Tried 3+ different food categories" });
+    
+    const hasFeastHost = filteredRows.some(h => h.people >= 4);
+    if (hasFeastHost) activeBadges.push({ text: "Feast Host 🤝", desc: "Logged a meal for 4+ people" });
+  }
+  
+  let badgesHTML = "";
+  if (activeProfile !== "all") {
+    if (streak > 0) {
+      badgesHTML += `<span style="background: var(--prize-red); color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 800; border: 1.5px solid #000; box-shadow: 1px 1px 0 #000;">🔥 ${streak} DAY STREAK</span>`;
+    }
+    activeBadges.forEach(b => {
+      badgesHTML += `<span style="background: var(--gold); color: #000; font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 800; border: 1.5px solid #000; box-shadow: 1px 1px 0 #000;" title="${b.desc}">${b.text}</span>`;
+    });
+  }
+  
+  let badgesRow = $("#profile-badges-row");
+  if (!badgesRow) {
+    const pContainer = $(".profile-container");
+    if (pContainer) {
+      badgesRow = document.createElement("div");
+      badgesRow.id = "profile-badges-row";
+      badgesRow.style = "margin-top: 6px; display: flex; gap: 4px; justify-content: flex-end; flex-wrap: wrap;";
+      pContainer.appendChild(badgesRow);
+    }
+  }
+  if (badgesRow) {
+    badgesRow.innerHTML = badgesHTML;
   }
   
   if(filteredRows.length === 0){
@@ -3509,8 +4009,202 @@ function renderAnalyticsDashboard(filteredRows) {
         </g>
       </svg>
     `;
+    renderCalendarGrid(filteredRows);
   }
 }
+
+function renderCalendarGrid(filteredRows) {
+  const container = $("#calendar-grid-container");
+  if (!container) return;
+  
+  const dayMs = 24 * 60 * 60 * 1000;
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  
+  const daysList = [];
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(today.getTime() - i * dayMs);
+    daysList.push({
+      dateStr: d.toISOString().split('T')[0],
+      dayName: d.toLocaleDateString(undefined, {weekday: 'short'}),
+      dayNum: d.getDate(),
+      meals: [],
+      spent: 0
+    });
+  }
+  
+  filteredRows.forEach(h => {
+    const dateStr = new Date(h.eaten_on).toISOString().split('T')[0];
+    const match = daysList.find(d => d.dateStr === dateStr);
+    if (match) {
+      match.spent += h.amount || 0;
+      const itemIds = (h.item_id || "").split(",");
+      itemIds.forEach(id => {
+        const it = itemsCache.find(x => x.id === id);
+        const cat = it ? (it.category || "").toLowerCase() : "";
+        let emoji = "🍽️";
+        if (cat === "veg") emoji = "🥦";
+        else if (cat === "non-veg") emoji = "🍖";
+        else if (cat === "egg") emoji = "🥚";
+        else if (cat === "dessert") emoji = "🍨";
+        else if (cat === "drink") emoji = "🥤";
+        match.meals.push(emoji);
+      });
+    }
+  });
+  
+  container.innerHTML = daysList.map(d => {
+    const hasMeals = d.meals.length > 0;
+    const bg = hasMeals ? "rgba(23, 217, 122, 0.12)" : "rgba(0,0,0,0.02)";
+    const border = hasMeals ? "2px solid var(--win-green)" : "2.5px solid #000";
+    const spentText = hasMeals ? `₹${d.spent.toFixed(0)}` : "";
+    const mealEmojis = d.meals.slice(0, 3).join('');
+    
+    return `
+      <div style="
+        background: ${bg};
+        border: ${border};
+        border-radius: 8px;
+        padding: 6px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 54px;
+        box-shadow: ${hasMeals ? "1px 1px 0 #000" : "none"};
+      " title="${d.dateStr}">
+        <span style="font-size: 9px; opacity: 0.6; font-weight: 800; color: #1a0630;">${d.dayName} ${d.dayNum}</span>
+        <span style="font-size: 14px; margin: 2px 0;">${mealEmojis}</span>
+        <span style="font-size: 9px; font-weight: 800; color: var(--win-green);">${spentText}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+// Toggle Calendar
+$("#btn-toggle-calendar").addEventListener("click", () => {
+  const calView = $("#history-calendar-view");
+  const isHidden = calView.style.display === "none";
+  calView.style.display = isHidden ? "block" : "none";
+  $("#btn-toggle-calendar").textContent = isHidden ? "📅 HIDE CALENDAR GRID" : "📅 VIEW CALENDAR GRID";
+});
+
+// CSV Export
+$("#btn-export-csv").addEventListener("click", () => {
+  window.open(API + "/api/places/export", "_blank");
+});
+
+// CSV Import
+$("#input-import-csv").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const formData = new FormData();
+  formData.append("file", file);
+  try {
+    const res = await fetch(API + "/api/places/import", {
+      method: "POST",
+      body: formData
+    });
+    const data = await res.json();
+    if (res.ok) {
+      Modal.alert(`Successfully imported menu! Added ${data.imported_items} new items. 🎉`);
+      loadPlaces();
+    } else {
+      Modal.alert(data.detail || "Import failed.");
+    }
+  } catch(err) {
+    Modal.alert("Error importing CSV file.");
+  }
+  e.target.value = "";
+});
+
+// Gemini OCR Menu Scan
+$("#input-ocr-menu").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const statusEl = $("#ocr-status-text");
+  statusEl.textContent = "⏳ Analyzing menu image (Gemini API)...";
+  statusEl.style.color = "var(--hot-pink)";
+  const formData = new FormData();
+  formData.append("file", file);
+  try {
+    const res = await fetch(API + "/api/places/ocr", {
+      method: "POST",
+      body: formData
+    });
+    const data = await res.json();
+    if (res.ok) {
+      statusEl.textContent = "✅ Menu scanned successfully!";
+      statusEl.style.color = "var(--win-green)";
+      if (data.restaurant_name) {
+        $("#np-name").value = data.restaurant_name;
+      }
+      $("#np-items-wrap").innerHTML = "";
+      if (data.items && data.items.length > 0) {
+        data.items.forEach(it => {
+          const wrap = $("#np-items-wrap");
+          const row = document.createElement("div");
+          row.className = "small-form new-item-row";
+          row.style.marginTop = "6px";
+          row.innerHTML = `
+            <input type="text" class="ni-name" placeholder="Item name" value="${it.name || ''}" />
+            <input type="number" class="ni-price" placeholder="Price" style="max-width:80px;" value="${it.price || ''}" />
+            <select class="ni-cat" style="max-width:90px;">
+              <option value="veg" ${it.category === 'veg' ? 'selected' : ''}>Veg</option>
+              <option value="non-veg" ${it.category === 'non-veg' ? 'selected' : ''}>Non-Veg</option>
+              <option value="egg" ${it.category === 'egg' ? 'selected' : ''}>Egg</option>
+            </select>
+            <select class="ni-role" style="max-width:100px;">
+              <option value="main" ${it.meal_role === 'main' ? 'selected' : ''}>🍱 Main</option>
+              <option value="snack" ${it.meal_role === 'snack' ? 'selected' : ''}>🍟 Snack</option>
+              <option value="side" ${it.meal_role === 'side' ? 'selected' : ''}>🥗 Side</option>
+              <option value="dessert" ${it.meal_role === 'dessert' ? 'selected' : ''}>🍨 Dessert</option>
+              <option value="beverage" ${it.meal_role === 'beverage' ? 'selected' : ''}>🥤 Drink</option>
+            </select>
+            <select class="ni-paired" style="max-width:110px;">
+              <option value="">🔗 No Pair</option>
+            </select>
+            <select class="ni-tags" style="max-width:100px;">
+              <option value="">No tag</option>
+              <option value="spicy" ${it.tags && it.tags.includes('spicy') ? 'selected' : ''}>Spicy</option>
+              <option value="sweet" ${it.tags && it.tags.includes('sweet') ? 'selected' : ''}>Sweet</option>
+              <option value="light" ${it.tags && it.tags.includes('light') ? 'selected' : ''}>Light</option>
+              <option value="healthy" ${it.tags && it.tags.includes('healthy') ? 'selected' : ''}>Healthy</option>
+              <option value="street food" ${it.tags && it.tags.includes('street food') ? 'selected' : ''}>Street Food</option>
+              <option value="dessert" ${it.tags && it.tags.includes('dessert') ? 'selected' : ''}>Dessert</option>
+              <option value="snack" ${it.tags && it.tags.includes('snack') ? 'selected' : ''}>Snack</option>
+              <option value="rice" ${it.tags && it.tags.includes('rice') ? 'selected' : ''}>Rice</option>
+              <option value="beverage" ${it.tags && it.tags.includes('beverage') ? 'selected' : ''}>Beverage</option>
+              <option value="fast food" ${it.tags && it.tags.includes('fast food') ? 'selected' : ''}>Fast Food</option>
+            </select>
+            <button type="button" class="remove-item-row" style="background:none; border:2px solid #ff8b8b; color:#ff8b8b; border-radius:8px; padding:4px 10px; cursor:pointer;">✕</button>
+          `;
+          row.querySelector(".ni-name").addEventListener("input", updateAddPlacePairingDropdowns);
+          row.querySelector(".remove-item-row").addEventListener("click", () => {
+            row.remove();
+            updateAddPlacePairingDropdowns();
+          });
+          wrap.appendChild(row);
+        });
+        updateAddPlacePairingDropdowns();
+      }
+      if (data.api_key_missing) {
+        Modal.alert("Scanned in OFFLINE mock mode. Add a GEMINI_API_KEY env variable to parse real images!");
+      } else {
+        Modal.alert("Menu parsed successfully! Please review the auto-populated items and click ADD PLACE + MENU to save.");
+      }
+    } else {
+      statusEl.textContent = "❌ Image analysis failed.";
+      statusEl.style.color = "var(--prize-red)";
+      Modal.alert(data.detail || "Scanning failed.");
+    }
+  } catch(err) {
+    statusEl.textContent = "❌ Network error scanning menu.";
+    statusEl.style.color = "var(--prize-red)";
+    Modal.alert("Connection error scanning menu image.");
+  }
+  e.target.value = "";
+});
 
 $("#btn-config-api").addEventListener("click", async () => {
   const currentUrl = localStorage.getItem("API_BASE_URL") || window.API_BASE_URL || "";
@@ -3523,5 +4217,6 @@ $("#btn-config-api").addEventListener("click", async () => {
   }
 });
 </script>
+
 </body>
 </html>
