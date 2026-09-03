@@ -1122,6 +1122,14 @@ let activeRevealedIndex = 0;
 let sessionVetoedPlaceIds = new Set();
 let sessionVetoedPlaceNames = {};
 let pollTimer = null;
+function escapeHTML(str) {
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
 let currentPollCode = null;
 let isPollCreator = false;
@@ -3118,7 +3126,7 @@ function renderPollVotingState(poll){
         return `
           <div style="background: rgba(255,255,255,0.7); border: 2.5px solid #000; border-radius: 10px; padding: 12px; margin-bottom: 10px; text-align: left; box-shadow: 0 2px 0 #000;">
             <div style="display: flex; justify-content: space-between; font-weight: 800; font-size: 14px; color: #1a0630;">
-              <span>${c.item_name} <span style="opacity: 0.7; font-size: 12px;">@ ${c.place_name}</span></span>
+              <span>${escapeHTML(c.item_name)} <span style="opacity: 0.7; font-size: 12px;">@ ${escapeHTML(c.place_name)}</span></span>
               <span style="color: #0b6b3c; font-weight: 900;">${count} votes (${pct}%)</span>
             </div>
             <div style="width: 100%; background: rgba(0,0,0,0.12); border: 1.5px solid #000; border-radius: 4px; height: 10px; margin-top: 8px; overflow: hidden;">
@@ -3142,7 +3150,7 @@ function renderPollVotingState(poll){
             cursor: pointer;
             box-shadow: 0 4px 0 #000;
           ">
-            👍 ${c.item_name} <span style="opacity: 0.6; font-size: 12px; font-weight: 600;">@ ${c.place_name}</span>
+            👍 ${escapeHTML(c.item_name)} <span style="opacity: 0.6; font-size: 12px; font-weight: 600;">@ ${escapeHTML(c.place_name)}</span>
           </button>
         `;
       }
@@ -3164,7 +3172,7 @@ function renderPollVotingState(poll){
       </div>
 
       <div style="font-size: 13px; font-weight: 700; margin-bottom: 15px; opacity: 0.8;">
-        👥 Voters in room: ${poll.voted_users.length > 0 ? poll.voted_users.join(", ") : "waiting for votes..."}
+        👥 Voters in room: ${(poll.voted_users && poll.voted_users.length > 0) ? poll.voted_users.map(u => escapeHTML(u)).join(", ") : "waiting for votes..."}
       </div>
 
       <div style="border-top: 2px dashed rgba(0,0,0,0.15); padding-top: 15px; margin-top: 15px; text-align: left; color: #000;">
@@ -3199,8 +3207,8 @@ function renderPollVotingState(poll){
         <div id="poll-chat-messages" style="height: 120px; overflow-y: auto; background: rgba(0,0,0,0.05); border: 2px solid #000; border-radius: 8px; padding: 8px; font-size: 13px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 6px;">
           ${(poll.chat || []).map(msg => `
             <div>
-              <strong style="color: ${msg.who.toLowerCase() === who.toLowerCase() ? 'var(--hot-pink)' : 'var(--deep-purple-2)'};">${msg.who}</strong>: 
-              <span style="font-weight: 600;">${msg.message}</span>
+              <strong style="color: ${msg.who.toLowerCase() === who.toLowerCase() ? 'var(--hot-pink)' : 'var(--deep-purple-2)'};">${escapeHTML(msg.who)}</strong>: 
+              <span style="font-weight: 600;">${escapeHTML(msg.message)}</span>
             </div>
           `).join('') || '<div style="opacity:0.5; font-weight:800; text-align:center; padding-top:40px;">No messages yet. Say hello! 👋</div>'}
         </div>
