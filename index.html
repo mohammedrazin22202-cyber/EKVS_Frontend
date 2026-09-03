@@ -22,13 +22,14 @@
     --cream:#FFF6DD;
   }
   *{box-sizing:border-box;}
-  body{
+  html, body{
     margin:0;
     font-family:'Baloo 2', sans-serif;
     background: radial-gradient(circle at 50% 0%, var(--deep-purple-2), var(--deep-purple) 55%, var(--dark) 100%);
     color:var(--cream);
     min-height:100vh;
     padding-bottom:60px;
+    overflow-x:hidden;
   }
   .display{font-family:'Luckiest Guy', cursive; letter-spacing:1px;}
 
@@ -410,7 +411,7 @@
 <body>
 
 <div class="marquee-wrap">
-  <div class="marquee">🍽️&nbsp; EKVS FOOD DECIDER — DECIDING YOUR NEXT MEAL SO YOU DON'T HAVE TO &nbsp;🍽️&nbsp; ADD YOUR FAVORITE PLACES AND FIND THE PERFECT DISH &nbsp;🍽️&nbsp; EKVS FOOD DECIDER — DECIDING YOUR NEXT MEAL SO YOU DON'T HAVE TO &nbsp;🍽️&nbsp;</div>
+  <div class="marquee">🍽️&nbsp; EKVS FOOD DECIDER — DECIDING YOUR NEXT MEAL SO YOU DON'T HAVE TO &nbsp;🍽️&nbsp; ADD YOUR FAVORITE PLACES AND FIND THE PERFECT DISH &nbsp;🍽️&nbsp; EKVS FOOD DECIDER — DECIDING YOUR NEXT MEAL SO YOU DON'T HAVE TO &nbsp;🍽️&nbsp; ADD YOUR FAVORITE PLACES AND FIND THE PERFECT DISH &nbsp;🍽️&nbsp;</div>
 </div>
 
 <header class="hero">
@@ -421,7 +422,7 @@
   <p class="subtitle">Enter your budget and preferences below, and let EKVS recommend the perfect meal for your group.</p>
 </header>
 
-<div class="profile-container" style="max-width: 600px; margin: 15px auto 0; text-align: right; padding: 0 16px;">
+<div class="profile-container" style="max-width: 600px; margin: 15px auto 0; padding: 0 16px; display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 8px;">
   <span style="font-weight: 800; font-size: 13px; color: var(--gold); margin-right: 8px;">👤 Active Profile:</span>
   <select id="profile-select" style="
     background: #000;
@@ -640,8 +641,8 @@
         <!-- Spending Weekly Trend -->
         <div style="background: rgba(0,0,0,0.04); border: 2.5px solid #000; border-radius: 12px; padding: 12px; min-width: 0; box-shadow: 0 3px 0 #000;">
           <h4 class="display" style="margin: 0 0 8px; font-size: 14px; color: var(--deep-purple-2);">Weekly Spend Trend</h4>
-          <div id="spend-chart-container" style="height: 120px; display: flex; align-items: flex-end; justify-content: space-around; padding-top: 10px; border-bottom: 3px solid #000;">
-            <!-- Dynamic SVG or CSS bars will render here -->
+          <div id="spend-chart-container" style="display: flex; flex-direction: column;">
+            <!-- Dynamic SVG or CSS bars and baseline labels render here -->
           </div>
         </div>
         <!-- Cuisine Preferences -->
@@ -733,7 +734,7 @@
   align-items: center;
   padding: 16px;
 ">
-  <div class="ticket" modal-dialog style="
+  <div class="ticket modal-dialog" style="
     max-width: 400px;
     width: 100%;
     margin-bottom: 0;
@@ -765,7 +766,7 @@
   align-items: center;
   padding: 16px;
 ">
-  <div class="ticket" modal-dialog style="
+  <div class="ticket modal-dialog" style="
     max-width: 400px;
     width: 100%;
     margin-bottom: 0;
@@ -824,7 +825,7 @@
   align-items: center;
   padding: 16px;
 ">
-  <div class="ticket" modal-dialog style="
+  <div class="ticket modal-dialog" style="
     max-width: 400px;
     width: 100%;
     margin-bottom: 0;
@@ -867,7 +868,7 @@
   align-items: center;
   padding: 16px;
 ">
-  <div class="ticket" modal-dialog style="
+  <div class="ticket modal-dialog" style="
     max-width: 400px;
     width: 100%;
     margin-bottom: 0;
@@ -911,7 +912,7 @@
   align-items: center;
   padding: 16px;
 ">
-  <div class="ticket" modal-dialog style="
+  <div class="ticket modal-dialog" style="
     max-width: 400px;
     width: 100%;
     margin-bottom: 0;
@@ -948,7 +949,7 @@
   align-items: center;
   padding: 16px;
 ">
-  <div class="ticket" modal-dialog style="
+  <div class="ticket modal-dialog" style="
     max-width: 400px;
     width: 100%;
     margin-bottom: 0;
@@ -1000,12 +1001,12 @@
 
 <script>
 function getApiBaseUrl() {
-  if (window.API_BASE_URL && window.API_BASE_URL.trim() !== "") {
-    return window.API_BASE_URL.trim().replace(/\/+$/, "");
-  }
   const stored = localStorage.getItem("API_BASE_URL");
   if (stored && stored.trim() !== "") {
     return stored.trim().replace(/\/+$/, "");
+  }
+  if (window.API_BASE_URL && window.API_BASE_URL.trim() !== "") {
+    return window.API_BASE_URL.trim().replace(/\/+$/, "");
   }
   if (window.location.protocol === "file:" || window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.hostname === "") {
     return window.location.port === "8000" ? "" : "http://127.0.0.1:8000";
@@ -1135,6 +1136,18 @@ function escapeHTML(str) {
     .replace(/'/g, "&#039;");
 }
 
+function getLocalDateStr(date) {
+  const d = date instanceof Date ? date : new Date(date);
+  if (isNaN(d.getTime())) return "";
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+let isDictatorSpinning = false;
+
+
 let currentPollCode = null;
 let isPollCreator = false;
 let userHasVoted = false;
@@ -1172,7 +1185,7 @@ function connectPollWebSocket(code) {
             pollTimer = null;
           }
           
-          if (poll.dictator && (!revealedSuggestions || revealedSuggestions.length === 0 || !revealedSuggestions.includes(poll.dictator))) {
+          if (poll.dictator && !isDictatorSpinning) {
             const currentRoomEl = $("#results");
             const isAlreadyShowingDictator = currentRoomEl && currentRoomEl.innerHTML.includes("👑 DINE DICTATOR");
             if (!isAlreadyShowingDictator && poll.voted_users && poll.voted_users.length > 0) {
@@ -1219,6 +1232,7 @@ function enablePollingFallback() {
 }
 
 function runDictatorSpinAnimation(votedUsers, dictatorName) {
+  isDictatorSpinning = true;
   $("#spin-wrap").style.display = "block";
   $("#results").innerHTML = "";
   
@@ -1309,6 +1323,7 @@ function runDictatorSpinAnimation(votedUsers, dictatorName) {
       requestAnimationFrame(animate);
     } else {
       setTimeout(() => {
+        isDictatorSpinning = false;
         $("#spin-wrap").style.display = "none";
         AudioFX.success();
         if (window.confetti) {
@@ -1347,7 +1362,7 @@ const SplitBillModal = {
       this.calc.textContent = `₹${perPerson}`;
     };
     
-    this.list.addEventListener("change", updateCalculation);
+    this.list.onchange = updateCalculation;
     updateCalculation();
     
     this.el.style.display = "flex";
@@ -1385,8 +1400,10 @@ async function claimMealAction(claimBtn, people, budgetVal) {
   let suggestedWho = activeProfile === "all" ? userProfiles[0] : activeProfile;
   const amount = parseFloat(claimBtn.dataset.amount);
   
-  const confirmSplit = await Modal.confirm("Would you like to split the bill with other profiles?", "Split Bill?");
   let selectedProfiles = [suggestedWho];
+  const confirmSplit = (userProfiles && userProfiles.length > 1) 
+    ? await Modal.confirm("Would you like to split the bill with other profiles?", "Split Bill?") 
+    : false;
   
   if (confirmSplit) {
     const splitWith = await SplitBillModal.show(amount, claimBtn.dataset.place, claimBtn.dataset.item, budgetVal, suggestedWho);
@@ -1622,7 +1639,7 @@ $("#prefs-btn-save").addEventListener("click", () => {
   // Update current preference select in the main UI if active
   const activeProfile = $("#profile-select").value;
   if (activeProfile.toLowerCase() === profileName.toLowerCase()) {
-    $("#in-pref").value = defaultPref;
+    setPrefTagsFromValue(defaultPref);
   }
   
   ProfilePrefsModal.hide();
@@ -2366,9 +2383,12 @@ function renderSuggestionCard(people){
 
   // Wire up surf tab buttons
   $all(".surf-tab-btn").forEach(btn => {
-
     btn.addEventListener("click", () => {
       activeRevealedIndex = parseInt(btn.dataset.idx);
+      const activeRest = revealedSuggestions[activeRevealedIndex];
+      if (activeRest) {
+        seenItemIdsForCurrentPlace = new Set((activeRest.revealedMeals || [activeRest]).map(m => m.item_id));
+      }
       renderSuggestionCard(people);
       $("#item-details-container").style.display = "block";
       $("#click-prompt").textContent = "👆 Click restaurant name to hide details";
@@ -2585,17 +2605,21 @@ async function vetoActiveRestaurant(people) {
       seenItemIdsForCurrentPlace = new Set([cand.item_id]);
       revealedSuggestions.push(cand);
       activeRevealedIndex = 0;
-    } else {
+    } else if (currentSuggestions.length > 0) {
       let fallback = currentSuggestions[0];
-      if (fallback) {
-        fallback.revealedMeals = [fallback];
-        fallback.activeMealIndex = 0;
-        revealedSuggestions.push(fallback);
-        activeRevealedIndex = 0;
-      }
+      fallback.revealedMeals = [fallback];
+      fallback.activeMealIndex = 0;
+      revealedSuggestions.push(fallback);
+      activeRevealedIndex = 0;
     }
   } else {
     activeRevealedIndex = Math.min(activeRevealedIndex, revealedSuggestions.length - 1);
+  }
+
+  if (revealedSuggestions.length === 0 || currentSuggestions.length === 0) {
+    unlockFindMealButton();
+    $("#results").innerHTML = `<div class="empty">All options have been vetoed for this session! Remove a veto below or adjust your search filters. 🚫</div>`;
+    return;
   }
 
   renderSuggestionCard(people);
@@ -2700,6 +2724,8 @@ async function loadPlaces(){
             <option value="veg">Veg</option>
             <option value="non-veg">Non-Veg</option>
             <option value="egg">Egg</option>
+            <option value="dessert">Dessert</option>
+            <option value="drink">Drink</option>
           </select>
           <select class="new-item-role" style="max-width:110px;">
             <option value="main">🍱 Main</option>
@@ -2855,6 +2881,8 @@ function addItemRow(){
       <option value="veg">Veg</option>
       <option value="non-veg">Non-Veg</option>
       <option value="egg">Egg</option>
+      <option value="dessert">Dessert</option>
+      <option value="drink">Drink</option>
     </select>
     <select class="ni-role" style="max-width:100px;">
       <option value="main">🍱 Main</option>
@@ -3622,19 +3650,19 @@ async function loadHistory(){
   const activeBadges = [];
   
   if (activeProfile !== "all") {
-    const uniqueDays = [...new Set(filteredRows.map(h => h.eaten_on.split('T')[0]))].sort().reverse();
+    const uniqueDays = [...new Set(filteredRows.map(h => getLocalDateStr(h.eaten_on)))].filter(Boolean).sort().reverse();
     if (uniqueDays.length > 0) {
-      const todayStr = new Date().toISOString().split('T')[0];
-      const yesterdayStr = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+      const todayStr = getLocalDateStr(new Date());
+      const yesterdayStr = getLocalDateStr(new Date(Date.now() - 86400000));
       
       let checkDateStr = uniqueDays[0];
       if (checkDateStr === todayStr || checkDateStr === yesterdayStr) {
         streak = 1;
-        let nextExpected = new Date(new Date(checkDateStr).getTime() - 86400000).toISOString().split('T')[0];
+        let nextExpected = getLocalDateStr(new Date(new Date(checkDateStr).getTime() - 86400000));
         for (let i = 1; i < uniqueDays.length; i++) {
           if (uniqueDays[i] === nextExpected) {
             streak++;
-            nextExpected = new Date(new Date(nextExpected).getTime() - 86400000).toISOString().split('T')[0];
+            nextExpected = getLocalDateStr(new Date(new Date(nextExpected).getTime() - 86400000));
           } else {
             break;
           }
@@ -3888,26 +3916,32 @@ function renderAnalyticsDashboard(filteredRows) {
   
   const maxWeeklySpend = Math.max(...weeklySpend, 100);
   const spendChartContainer = $("#spend-chart-container");
-  spendChartContainer.innerHTML = weeklySpend.map((spend, idx) => {
-    const heightPercent = Math.max(10, (spend / maxWeeklySpend) * 90);
-    const weekLabels = ["Wk -3", "Wk -2", "Wk -1", "This Wk"];
-    return `
-      <div style="display: flex; flex-direction: column; align-items: center; width: 22%; height: 100%; justify-content: flex-end;">
-        <span style="font-size: 11px; font-weight: 800; color: var(--win-green); margin-bottom: 2px;">₹${spend.toFixed(0)}</span>
-        <div style="
-          width: 100%; 
-          height: ${heightPercent}%; 
-          background: linear-gradient(180deg, var(--gold), var(--gold-dark)); 
-          border: 2px solid #000; 
-          border-bottom: none;
-          border-radius: 6px 6px 0 0;
-          box-shadow: 2px 0 0 #000;
-          transition: height 0.5s ease-out;
-        "></div>
-        <span style="font-size: 10px; font-weight: 800; color: #1a0630; margin-top: 4px; white-space: nowrap;">${weekLabels[idx]}</span>
-      </div>
-    `;
-  }).join('');
+  const weekLabels = ["Wk -3", "Wk -2", "Wk -1", "This Wk"];
+  spendChartContainer.innerHTML = `
+    <div style="height: 100px; display: flex; align-items: flex-end; justify-content: space-around; border-bottom: 3px solid #000; padding-top: 8px;">
+      ${weeklySpend.map((spend, idx) => {
+        const heightPercent = Math.max(10, (spend / maxWeeklySpend) * 85);
+        return `
+          <div style="display: flex; flex-direction: column; align-items: center; width: 20%; height: 100%; justify-content: flex-end;">
+            <span style="font-size: 10px; font-weight: 800; color: #0b6b3c; margin-bottom: 2px;">₹${spend.toFixed(0)}</span>
+            <div style="
+              width: 100%; 
+              height: ${heightPercent}%; 
+              background: linear-gradient(180deg, var(--gold), var(--gold-dark)); 
+              border: 2px solid #000; 
+              border-bottom: none;
+              border-radius: 6px 6px 0 0;
+              box-shadow: 2px 0 0 #000;
+              transition: height 0.5s ease-out;
+            "></div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+    <div style="display: flex; justify-content: space-around; padding-top: 4px;">
+      ${weekLabels.map(l => `<span style="font-size: 10px; font-weight: 800; color: #1a0630; width: 20%; text-align: center;">${l}</span>`).join('')}
+    </div>
+  `;
 
   // 2. Cuisine Preferences Chart
   const cuisineCounts = {};
@@ -3958,7 +3992,7 @@ function renderAnalyticsDashboard(filteredRows) {
     for (let i = 29; i >= 0; i--) {
       const d = new Date(todayMidnight.getTime() - i * dayMs);
       datesList.push({
-        dateStr: d.toISOString().split('T')[0],
+        dateStr: getLocalDateStr(d),
         label: d.toLocaleDateString(undefined, {month: 'short', day: 'numeric'}),
         totalSpent: 0,
         totalSaved: 0
@@ -3966,7 +4000,7 @@ function renderAnalyticsDashboard(filteredRows) {
     }
 
     filteredRows.forEach(h => {
-      const eatenDateStr = new Date(h.eaten_on).toISOString().split('T')[0];
+      const eatenDateStr = getLocalDateStr(h.eaten_on);
       const match = datesList.find(d => d.dateStr === eatenDateStr);
       if (match) {
         match.totalSpent += h.amount || 0;
@@ -4068,7 +4102,7 @@ function renderCalendarGrid(filteredRows) {
   for (let i = 29; i >= 0; i--) {
     const d = new Date(today.getTime() - i * dayMs);
     daysList.push({
-      dateStr: d.toISOString().split('T')[0],
+      dateStr: getLocalDateStr(d),
       dayName: d.toLocaleDateString(undefined, {weekday: 'short'}),
       dayNum: d.getDate(),
       meals: [],
@@ -4077,7 +4111,7 @@ function renderCalendarGrid(filteredRows) {
   }
   
   filteredRows.forEach(h => {
-    const dateStr = new Date(h.eaten_on).toISOString().split('T')[0];
+    const dateStr = getLocalDateStr(h.eaten_on);
     const match = daysList.find(d => d.dateStr === dateStr);
     if (match) {
       match.spent += h.amount || 0;
