@@ -120,6 +120,10 @@
     position:relative;
     margin-bottom:26px;
   }
+  .modal-dialog {
+    max-height: 90vh;
+    overflow-y: auto;
+  }
   .ticket::before, .ticket::after{
     content:"";
     position:absolute;
@@ -718,7 +722,7 @@
 </main>
 
 <!-- Custom Modal Dialog -->
-<div id="custom-modal" style="
+<div id="custom-modal" class="modal-backdrop" style="
   display: none;
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
@@ -729,7 +733,7 @@
   align-items: center;
   padding: 16px;
 ">
-  <div class="ticket" style="
+  <div class="ticket" modal-dialog style="
     max-width: 400px;
     width: 100%;
     margin-bottom: 0;
@@ -750,7 +754,7 @@
 </div>
 
 <!-- Edit Item Modal Dialog -->
-<div id="edit-item-modal" style="
+<div id="edit-item-modal" class="modal-backdrop" style="
   display: none;
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
@@ -761,7 +765,7 @@
   align-items: center;
   padding: 16px;
 ">
-  <div class="ticket" style="
+  <div class="ticket" modal-dialog style="
     max-width: 400px;
     width: 100%;
     margin-bottom: 0;
@@ -809,7 +813,7 @@
 </div>
 
 <!-- Profile Preferences Modal -->
-<div id="profile-prefs-modal" style="
+<div id="profile-prefs-modal" class="modal-backdrop" style="
   display: none;
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
@@ -820,7 +824,7 @@
   align-items: center;
   padding: 16px;
 ">
-  <div class="ticket" style="
+  <div class="ticket" modal-dialog style="
     max-width: 400px;
     width: 100%;
     margin-bottom: 0;
@@ -852,7 +856,7 @@
 </div>
 
 <!-- Custom Meal Modal Dialog -->
-<div id="custom-meal-modal" style="
+<div id="custom-meal-modal" class="modal-backdrop" style="
   display: none;
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
@@ -863,7 +867,7 @@
   align-items: center;
   padding: 16px;
 ">
-  <div class="ticket" style="
+  <div class="ticket" modal-dialog style="
     max-width: 400px;
     width: 100%;
     margin-bottom: 0;
@@ -896,7 +900,7 @@
 
 
 <!-- Split Bill Modal Dialog -->
-<div id="split-bill-modal" style="
+<div id="split-bill-modal" class="modal-backdrop" style="
   display: none;
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
@@ -907,7 +911,7 @@
   align-items: center;
   padding: 16px;
 ">
-  <div class="ticket" style="
+  <div class="ticket" modal-dialog style="
     max-width: 400px;
     width: 100%;
     margin-bottom: 0;
@@ -933,7 +937,7 @@
 
 
 <!-- Add New Meal to Suggested Restaurant Modal Dialog -->
-<div id="add-new-meal-modal" style="
+<div id="add-new-meal-modal" class="modal-backdrop" style="
   display: none;
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
@@ -944,7 +948,7 @@
   align-items: center;
   padding: 16px;
 ">
-  <div class="ticket" style="
+  <div class="ticket" modal-dialog style="
     max-width: 400px;
     width: 100%;
     margin-bottom: 0;
@@ -4243,6 +4247,41 @@ $("#input-ocr-menu").addEventListener("change", async (e) => {
     Modal.alert("Connection error scanning menu image.");
   }
   e.target.value = "";
+});
+
+
+// Enter key handler for joining poll
+const pollCodeInput = $("#poll-code-input");
+if (pollCodeInput) {
+  pollCodeInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      $("#btn-join-poll").click();
+    }
+  });
+}
+
+// Click backdrop to dismiss modals & Escape key support
+$all(".modal-backdrop").forEach(modal => {
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      modal.style.display = "none";
+      const cancelBtn = modal.querySelector(".claim-btn[id*='cancel']");
+      if (cancelBtn) cancelBtn.click();
+    }
+  });
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    $all(".modal-backdrop").forEach(modal => {
+      if (modal.style.display !== "none" && modal.style.display !== "") {
+        modal.style.display = "none";
+        const cancelBtn = modal.querySelector(".claim-btn[id*='cancel']");
+        if (cancelBtn) cancelBtn.click();
+      }
+    });
+  }
 });
 
 $("#btn-config-api").addEventListener("click", async () => {
