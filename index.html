@@ -188,7 +188,7 @@
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: var(--gold-dark);
+    background: #000;
   }
   .radio-option:has(input[type="radio"]:checked) {
     background: var(--gold);
@@ -562,7 +562,7 @@
           <!-- Wheel pointer -->
           <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-top: 22px solid var(--prize-red); z-index: 10; filter: drop-shadow(0 2px 0 #000);"></div>
         </div>
-        <div class="display" style="font-size:18px; font-weight:800; color:var(--cream); text-shadow:2px 2px 0 #000; margin-top: 15px;">🎲 SPINNING THE MEAL WHEEL... 🎲</div>
+        <div class="display" style="font-size:18px; font-weight:800; color:#1a0630; margin-top: 15px;">🎲 SPINNING THE MEAL WHEEL... 🎲</div>
       </div>
     </div>
 
@@ -3098,12 +3098,12 @@ function renderPollVotingState(poll){
       
       if (userHasVoted) {
         return `
-          <div style="background: rgba(0,0,0,0.06); border: 2px solid var(--gold); border-radius: 10px; padding: 12px; margin-bottom: 10px; text-align: left;">
-            <div style="display: flex; justify-content: space-between; font-weight: 800; font-size: 14px;">
-              <span>${c.item_name} <span style="opacity: 0.6; font-size: 12px;">@ ${c.place_name}</span></span>
-              <span style="color: var(--win-green);">${count} votes (${pct}%)</span>
+          <div style="background: rgba(255,255,255,0.7); border: 2.5px solid #000; border-radius: 10px; padding: 12px; margin-bottom: 10px; text-align: left; box-shadow: 0 2px 0 #000;">
+            <div style="display: flex; justify-content: space-between; font-weight: 800; font-size: 14px; color: #1a0630;">
+              <span>${c.item_name} <span style="opacity: 0.7; font-size: 12px;">@ ${c.place_name}</span></span>
+              <span style="color: #0b6b3c; font-weight: 900;">${count} votes (${pct}%)</span>
             </div>
-            <div style="width: 100%; background: rgba(255,255,255,0.1); border-radius: 4px; height: 8px; margin-top: 8px; overflow: hidden;">
+            <div style="width: 100%; background: rgba(0,0,0,0.12); border: 1.5px solid #000; border-radius: 4px; height: 10px; margin-top: 8px; overflow: hidden;">
               <div style="width: 0%; background: var(--win-green); height: 100%; transition: width 0.5s ease-out;" class="poll-bar" data-pct="${pct}"></div>
             </div>
           </div>
@@ -3791,7 +3791,7 @@ async function loadLeaderboard() {
       if (totalMeals >= 9) return { name: "Food Gladiator", badge: "🍖", color: "var(--prize-red)" };
       if (totalMeals >= 4) return { name: "Gourmet Seeker", badge: "🥗", color: "var(--win-green)" };
       if (totalMeals >= 1) return { name: "Active Diner", badge: "🐣", color: "var(--hot-pink)" };
-      return { name: "Hungry Rookie", badge: "🥚", color: "var(--cream)" };
+      return { name: "Hungry Rookie", badge: "🥚", color: "var(--deep-purple-2)" };
     }
 
     listEl.innerHTML = leaderboardData.map((row, idx) => {
