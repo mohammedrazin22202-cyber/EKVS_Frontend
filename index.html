@@ -3062,6 +3062,13 @@ function renderPollVotingState(poll){
   const resultsDiv = $("#results");
   const activeProfile = $("#profile-select").value;
   const who = activeProfile === "all" ? "MegaTron" : activeProfile;
+
+  // Preserve active input values & focus across 2-second refresh ticks
+  const activeElemId = document.activeElement ? document.activeElement.id : null;
+  const savedChatVal = $("#poll-chat-input") ? $("#poll-chat-input").value : "";
+  const savedWriteInName = $("#poll-write-in-name") ? $("#poll-write-in-name").value : "";
+  const savedWriteInPrice = $("#poll-write-in-price") ? $("#poll-write-in-price").value : "";
+  const savedWriteInPlace = $("#poll-write-in-restaurant") ? $("#poll-write-in-restaurant").value : "";
   
   const votedUsersNormalized = (poll.voted_users || []).map(u => u.toLowerCase());
   userHasVoted = votedUsersNormalized.includes(who.toLowerCase());
@@ -3424,6 +3431,21 @@ function renderPollVotingState(poll){
         $("#btn-poll-send-chat").click();
       }
     });
+  }
+
+  // Restore preserved input values & focus
+  if ($("#poll-chat-input") && savedChatVal) $("#poll-chat-input").value = savedChatVal;
+  if ($("#poll-write-in-name") && savedWriteInName) $("#poll-write-in-name").value = savedWriteInName;
+  if ($("#poll-write-in-price") && savedWriteInPrice) $("#poll-write-in-price").value = savedWriteInPrice;
+  if ($("#poll-write-in-restaurant") && savedWriteInPlace) $("#poll-write-in-restaurant").value = savedWriteInPlace;
+  if (activeElemId) {
+    const el = document.getElementById(activeElemId);
+    if (el) {
+      el.focus();
+      if (el.setSelectionRange && el.value) {
+        el.setSelectionRange(el.value.length, el.value.length);
+      }
+    }
   }
 }
 
