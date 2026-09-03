@@ -3459,7 +3459,7 @@ function renderPollWinner(winner){
 // Profile management logic
 
 function setPrefTagsFromValue(val) {
-  const activeTags = (val || "").split(",").map(t => t.trim().lower()).filter(Boolean);
+  const activeTags = (val || "").split(",").map(t => t.trim().toLowerCase()).filter(Boolean);
   $all(".pref-tag").forEach(tag => {
     if (activeTags.includes(tag.dataset.val.toLowerCase())) {
       tag.classList.add("active");
