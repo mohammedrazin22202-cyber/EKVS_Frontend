@@ -4333,6 +4333,70 @@ $("#btn-config-api").addEventListener("click", async () => {
     loadPlaces();
   }
 });
+
+// 2. Weather Module (Open-Meteo, 100% Free, no API Key needed)
+let currentWeatherDesc = "";
+async function initWeather() {
+  const badge = $("#weather-badge");
+  if (!badge) return;
+  try {
+    const url = "https://api.open-meteo.com/v1/forecast?latitude=13.0827&longitude=80.2707&current=temperature_2m,weather_code,precipitation";
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Weather fetch failed");
+    const data = await res.json();
+    const temp = Math.round(data.current.temperature_2m);
+    const code = data.current.weather_code;
+    const precip = data.current.precipitation || 0;
+
+    let icon = "🌤️";
+    let desc = "Clear";
+    if (precip > 0 || (code >= 51 && code <= 67)) {
+      icon = "🌧️";
+      desc = "Rainy";
+    } else if (code >= 80 && code <= 82) {
+      icon = "🌦️";
+      desc = "Showers";
+    } else if (code >= 95) {
+      icon = "⛈️";
+      desc = "Stormy";
+    } else if (temp >= 32) {
+      icon = "☀️";
+      desc = "Hot";
+    } else if (temp <= 22) {
+      icon = "🧥";
+      desc = "Chilly";
+    } else {
+      icon = "⛅";
+      desc = "Pleasant";
+    }
+
+    currentWeatherDesc = `${desc} ${temp}°C`;
+    badge.textContent = `${icon} ${desc} ${temp}°C`;
+    badge.title = `Weather in Chennai: ${desc}, ${temp}°C. Tap to toggle comfort food bonus!`;
+  } catch (e) {
+    badge.textContent = "🌤️ Chennai 30°C";
+  }
+}
+
+if ($("#weather-badge")) {
+  $("#weather-badge").addEventListener("click", () => {
+    const notesInput = $("#in-notes");
+    if (!notesInput) return;
+    if (currentWeatherDesc.includes("Rain") || currentWeatherDesc.includes("Shower")) {
+      notesInput.value = (notesInput.value ? notesInput.value + ", " : "") + "rainy day comfort food";
+      Modal.alert("🌧️ Rainy day boost activated! Prioritizing hot snacks, spicy dishes & comfort meals.", "Weather Filter");
+    } else if (currentWeatherDesc.includes("Hot")) {
+      notesInput.value = (notesInput.value ? notesInput.value + ", " : "") + "cold drinks ice cream";
+      Modal.alert("☀️ Hot afternoon boost activated! Prioritizing cold treats & refreshing spots.", "Weather Filter");
+    } else {
+      notesInput.value = (notesInput.value ? notesInput.value + ", " : "") + "comfort food";
+      Modal.alert("🌤️ Weather recommendation tag applied!", "Weather Filter");
+    }
+  });
+}
+
+
+initWeather();
 </script>
 
 </body>
