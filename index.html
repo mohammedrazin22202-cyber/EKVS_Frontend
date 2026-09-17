@@ -532,11 +532,22 @@
         </label>
       </div>
 
+      <label>🕒 Time of Day Slot</label>
+      <div id="slot-tags-container" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
+        <button type="button" class="slot-tag active" data-slot="auto" style="background:var(--win-green); color:#000; border:2.5px solid #000; border-radius:10px; padding:6px 12px; font-weight:800; cursor:pointer; font-family:'Baloo 2', sans-serif; font-size:13px; box-shadow:0 2.5px 0 #000;">⚡ Auto</button>
+        <button type="button" class="slot-tag" data-slot="breakfast" style="background:#fff; border:2.5px solid #000; border-radius:10px; padding:6px 12px; font-weight:800; cursor:pointer; font-family:'Baloo 2', sans-serif; font-size:13px; box-shadow:0 2.5px 0 #000;">☕ Breakfast</button>
+        <button type="button" class="slot-tag" data-slot="lunch" style="background:#fff; border:2.5px solid #000; border-radius:10px; padding:6px 12px; font-weight:800; cursor:pointer; font-family:'Baloo 2', sans-serif; font-size:13px; box-shadow:0 2.5px 0 #000;">🍛 Lunch</button>
+        <button type="button" class="slot-tag" data-slot="snack" style="background:#fff; border:2.5px solid #000; border-radius:10px; padding:6px 12px; font-weight:800; cursor:pointer; font-family:'Baloo 2', sans-serif; font-size:13px; box-shadow:0 2.5px 0 #000;">🥪 Snack</button>
+        <button type="button" class="slot-tag" data-slot="dinner" style="background:#fff; border:2.5px solid #000; border-radius:10px; padding:6px 12px; font-weight:800; cursor:pointer; font-family:'Baloo 2', sans-serif; font-size:13px; box-shadow:0 2.5px 0 #000;">🌙 Dinner</button>
+      </div>
+      <input type="hidden" id="in-slot" value="auto" />
+
       <label>✏️ Additional Info</label>
       <textarea id="in-notes" placeholder="e.g. rainy day, want something quick, near hostel..."></textarea>
 
-      <div style="display: flex; gap: 10px; margin-top: 15px;">
+      <div style="display: flex; gap: 10px; margin-top: 15px; align-items: stretch;">
         <button class="big-cta" id="btn-suggest" style="flex: 2; margin-top: 0;">🔮 FIND MY MEAL</button>
+        <button class="big-cta" id="btn-voice-search" style="flex: 0 0 52px; background: #00d2ff; color:#000; box-shadow: 0 5px 0 #0095b6; margin-top: 0; font-size: 22px; padding: 0; display: flex; align-items: center; justify-content: center;" title="Voice Assistant ('Tell me what to eat')">🎙️</button>
         <button class="big-cta" id="btn-create-poll" style="flex: 1.5; background: var(--hot-pink); box-shadow: 0 6px 0 #8c0a4d; margin-top: 0; color: #fff;">🗳️ CREATE POLL</button>
       </div>
       
@@ -4397,6 +4408,150 @@ if ($("#weather-badge")) {
 
 
 initWeather();
+
+// 3. Time-of-Day Slot Module
+function getAutoTimeSlot() {
+  const hr = new Date().getHours();
+  if (hr >= 5 && hr < 11) return "breakfast";
+  if (hr >= 11 && hr < 16) return "lunch";
+  if (hr >= 16 && hr < 19) return "snack";
+  return "dinner";
+}
+
+function updateTimeSlotBadge() {
+  const currentSlot = ($("#in-slot") && $("#in-slot").value) ? $("#in-slot").value : "auto";
+  const badge = $("#time-badge");
+  if (!badge) return;
+
+  const autoSlot = getAutoTimeSlot();
+  const slotLabels = {
+    breakfast: "Breakfast ☕",
+    lunch: "Lunch 🍛",
+    snack: "Snack 🥪",
+    dinner: "Dinner 🌙"
+  };
+
+  if (currentSlot === "auto") {
+    badge.textContent = `🕒 Auto (${slotLabels[autoSlot]})`;
+    badge.style.background = "var(--win-green)";
+  } else {
+    badge.textContent = `🕒 ${slotLabels[currentSlot] || currentSlot}`;
+    badge.style.background = "var(--gold)";
+  }
+}
+
+$all(".slot-tag").forEach(btn => {
+  btn.addEventListener("click", () => {
+    $all(".slot-tag").forEach(b => {
+      b.classList.remove("active");
+      b.style.background = "#fff";
+      b.style.color = "#000";
+    });
+    btn.classList.add("active");
+    btn.style.background = "var(--win-green)";
+    btn.style.color = "#000";
+    if ($("#in-slot")) {
+      $("#in-slot").value = btn.dataset.slot;
+    }
+    updateTimeSlotBadge();
+  });
+});
+
+if ($("#time-badge")) {
+  $("#time-badge").addEventListener("click", () => {
+    const slots = ["auto", "breakfast", "lunch", "snack", "dinner"];
+    const current = ($("#in-slot") && $("#in-slot").value) ? $("#in-slot").value : "auto";
+    const nextIdx = (slots.indexOf(current) + 1) % slots.length;
+    const nextSlot = slots[nextIdx];
+    const targetBtn = $(`button.slot-tag[data-slot="${nextSlot}"]`);
+    if (targetBtn) targetBtn.click();
+  });
+}
+
+// 4. Voice Search ("Tell me what to eat")
+function initVoiceSearch() {
+  const btn = $("#btn-voice-search");
+  if (!btn) return;
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    btn.addEventListener("click", () => {
+      Modal.alert("Speech recognition is not supported in this browser. Try Google Chrome on desktop or mobile!", "🎙️ Voice Search");
+    });
+    return;
+  }
+
+  const recognition = new SpeechRecognition();
+  recognition.lang = "en-IN";
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  let isListening = false;
+
+  btn.addEventListener("click", () => {
+    if (isListening) {
+      recognition.stop();
+      return;
+    }
+    try {
+      recognition.start();
+      isListening = true;
+      btn.style.background = "var(--prize-red)";
+      btn.style.color = "#fff";
+      btn.textContent = "🔴";
+      AudioFX.tick();
+    } catch (e) {
+      isListening = false;
+    }
+  });
+
+  recognition.onend = () => {
+    isListening = false;
+    btn.style.background = "#00d2ff";
+    btn.style.color = "#000";
+    btn.textContent = "🎙️";
+  };
+
+  recognition.onresult = (event) => {
+    const transcript = event.results[0][0].transcript.toLowerCase();
+    console.log("Voice Transcript:", transcript);
+
+    const budgetMatch = transcript.match(/(?:budget|for|within|under|of)?\s*(\d{2,4})\s*(?:rupees|rs|bucks|inr)?/i);
+    if (budgetMatch && budgetMatch[1]) {
+      $("#in-budget").value = budgetMatch[1];
+    }
+
+    const peopleMatch = transcript.match(/(\d+)\s*(?:people|persons|friends|guys|members)/i);
+    if (peopleMatch && peopleMatch[1]) {
+      $("#in-people").value = peopleMatch[1];
+    }
+
+    if (transcript.includes("non veg") || transcript.includes("non-veg") || transcript.includes("chicken") || transcript.includes("biryani")) {
+      const nonVegBtn = $('button.pref-tag[data-val="non-veg"]');
+      if (nonVegBtn && !nonVegBtn.classList.contains("active")) nonVegBtn.click();
+    } else if (transcript.includes("veg") || transcript.includes("vegetarian")) {
+      const vegBtn = $('button.pref-tag[data-val="veg"]');
+      if (vegBtn && !vegBtn.classList.contains("active")) vegBtn.click();
+    }
+
+    if (transcript.includes("spicy")) {
+      const spicyBtn = $('button.pref-tag[data-val="spicy"]');
+      if (spicyBtn && !spicyBtn.classList.contains("active")) spicyBtn.click();
+    }
+    if (transcript.includes("snack") || transcript.includes("chaat") || transcript.includes("puff")) {
+      const snackSlot = $('button.slot-tag[data-slot="snack"]');
+      if (snackSlot) snackSlot.click();
+    }
+
+    AudioFX.success();
+    setTimeout(() => {
+      $("#btn-suggest").click();
+    }, 400);
+  };
+}
+
+
+initVoiceSearch();
 </script>
 
 </body>
