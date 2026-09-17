@@ -412,6 +412,8 @@
     box-shadow: 0 0.5px 0 #000 !important;
   }
 </style>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 
@@ -495,6 +497,7 @@
         <button type="button" class="pref-tag" data-val="light" style="background:#fff; border:2.5px solid #000; border-radius:10px; padding:6px 12px; font-weight:800; cursor:pointer; font-family:'Baloo 2', sans-serif; font-size:13px; box-shadow:0 2.5px 0 #000; transition:all 0.1s ease;">Light / Healthy 🥗</button>
         <button type="button" class="pref-tag" data-val="street food" style="background:#fff; border:2.5px solid #000; border-radius:10px; padding:6px 12px; font-weight:800; cursor:pointer; font-family:'Baloo 2', sans-serif; font-size:13px; box-shadow:0 2.5px 0 #000; transition:all 0.1s ease;">Street food 🍢</button>
         <button type="button" class="pref-tag" data-val="drink" style="background:#fff; border:2.5px solid #000; border-radius:10px; padding:6px 12px; font-weight:800; cursor:pointer; font-family:'Baloo 2', sans-serif; font-size:13px; box-shadow:0 2.5px 0 #000; transition:all 0.1s ease;">Drink 🥤</button>
+        <button id="btn-open-map" type="button" style="flex: 1; background: var(--win-green); color: #000; border: 3px solid #000; border-radius: 12px; padding: 10px 14px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 0 #0b6b3c; font-family: 'Baloo 2', sans-serif; font-size: 14px;">🗺️ FOOD MAP</button>
       </div>
       <input type="hidden" id="in-pref" value="" />
 
@@ -1076,6 +1079,37 @@
 
 
 <!-- OpenStreetMap / Leaflet Food Map Modal Dialog -->
+
+
+<div id="food-map-modal" class="modal-backdrop" style="
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(22, 4, 36, 0.85);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+">
+  <div class="ticket modal-dialog" style="
+    max-width: 600px;
+    width: 100%;
+    margin-bottom: 0;
+    box-shadow: 0 8px 0 #000, 0 8px 24px rgba(0,0,0,.6);
+  ">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+      <h3 class="display" style="margin: 0; font-size: 22px; color: var(--hot-pink);">🗺️ FOOD MAP</h3>
+      <button id="map-btn-close" style="background: var(--prize-red); color: #fff; border: 2px solid #000; border-radius: 8px; font-weight: 800; cursor: pointer; padding: 4px 10px;">✕</button>
+    </div>
+    <p style="font-size: 13px; font-weight: 700; opacity: 0.8; margin-bottom: 10px; color: #1a0630;">Explore pinned dining spots. Click any marker for top dishes & 1-tap walking directions!</p>
+    
+    <div id="leaflet-food-map" style="height: 380px; width: 100%; border-radius: 12px; border: 3px solid #000; box-shadow: inset 0 0 10px rgba(0,0,0,0.2);"></div>
+  </div>
+</div>
+
+
+<!-- Split Ledger / "Who Owes Who" Modal Dialog -->
 
 
 <div class="status-pill" style="display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
@@ -4744,6 +4778,82 @@ if ($("#swiper-btn-close")) $("#swiper-btn-close").addEventListener("click", () 
   $("#food-swiper-modal").style.display = "none";
 });
 if ($("#btn-open-swiper")) $("#btn-open-swiper").addEventListener("click", openFoodSwiperModal);
+
+
+
+// 6. OpenStreetMap & Leaflet Interactive Map
+const CHENNAI_AREA_COORDS = {
+  "purasaiwalkam": [13.0905, 80.2580],
+  "purasaiwalkam high road": [13.0915, 80.2565],
+  "kosapet": [13.0910, 80.2645],
+  "bricklin road": [13.0872, 80.2520],
+  "gangadeeshwarar koil street": [13.0865, 80.2545],
+  "perambur": [13.1110, 80.2435],
+  "dashamakkan": [13.0955, 80.2570],
+  "kilpauk": [13.0815, 80.2415],
+  "choolai": [13.0890, 80.2680]
+};
+
+function getCoordsForPlace(place) {
+  const areaKey = (place.area || "").trim().toLowerCase();
+  if (CHENNAI_AREA_COORDS[areaKey]) {
+    const hash = (place.id || place.name || "").split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
+    const jitterLat = ((hash % 10) - 5) * 0.0003;
+    const jitterLon = (((hash >> 2) % 10) - 5) * 0.0003;
+    const [lat, lon] = CHENNAI_AREA_COORDS[areaKey];
+    return [lat + jitterLat, lon + jitterLon];
+  }
+  return [13.0890, 80.2550];
+}
+
+function openFoodMap() {
+  const modal = $("#food-map-modal");
+  if (!modal) return;
+  modal.style.display = "flex";
+
+  if (!leafletMapInstance && window.L) {
+    leafletMapInstance = L.map("leaflet-food-map").setView([13.0890, 80.2560], 14);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(leafletMapInstance);
+  }
+
+  setTimeout(() => {
+    if (leafletMapInstance) {
+      leafletMapInstance.invalidateSize();
+      leafletMapInstance.eachLayer((layer) => {
+        if (layer instanceof L.Marker) leafletMapInstance.removeLayer(layer);
+      });
+
+      placesCache.forEach(p => {
+        const coords = getCoordsForPlace(p);
+        const marker = L.marker(coords).addTo(leafletMapInstance);
+        const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(p.name + ', ' + (p.area || 'Chennai'))}`;
+        marker.bindPopup(`
+          <div style="font-family:'Baloo 2',sans-serif; text-align:center;">
+            <b style="font-size:15px; color:#1a0630;">${escapeHTML(p.name)}</b><br/>
+            <span style="font-size:12px; color:#666;">${escapeHTML(p.area || "Chennai")}</span><br/>
+            ${p.cuisine ? `<span style="font-size:12px; font-weight:700; color:var(--deep-purple-2);">${escapeHTML(p.cuisine)}</span><br/>` : ''}
+            <div style="margin-top:8px;">
+              <a href="${navUrl}" target="_blank" style="background:#00d2ff; color:#000; border:2px solid #000; border-radius:6px; padding:4px 8px; text-decoration:none; font-weight:800; font-size:12px;">🧭 Walk / Navigate</a>
+            </div>
+          </div>
+        `);
+      });
+    }
+  }, 200);
+}
+
+if ($("#map-btn-close")) {
+  $("#map-btn-close").addEventListener("click", () => {
+    $("#food-map-modal").style.display = "none";
+  });
+}
+
+if ($("#btn-open-map")) {
+  $("#btn-open-map").addEventListener("click", openFoodMap);
+}
 
 
 </script>
