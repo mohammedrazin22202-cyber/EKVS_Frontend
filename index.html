@@ -5,13 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>EKVS - Food Decider</title>
 <link rel="icon" type="image/png" href="./logo.png" />
-  <link rel="manifest" href="./manifest.json" />
-  <meta name="theme-color" content="#2A0845" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-
+<link rel="manifest" href="./manifest.json" />
+<meta name="theme-color" content="#2A0845" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.3/confetti.browser.min.js"></script>
 <script src="./config.js"></script>
 <style>
@@ -412,8 +413,6 @@
     box-shadow: 0 0.5px 0 #000 !important;
   }
 </style>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 
@@ -425,6 +424,8 @@
   <img src="./logo.png" alt="EKVS Logo" style="max-height: 120px; width: auto; margin-bottom: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);" />
   <br/>
   <span class="badge">⭐ EKVS MEAL DECIDER ⭐</span>
+  <span id="weather-badge" class="badge" style="background:#00d2ff; color:#000; margin-left: 6px; cursor:pointer;" title="Live Weather (Click to toggle weather recommendations)">🌤️ Loading Weather...</span>
+  <span id="time-badge" class="badge" style="background:var(--win-green); color:#000; margin-left: 6px; cursor:pointer;" title="Current meal time slot">🕒 Auto (Slot)</span>
   <h1 class="title">EKVS FOOD DECIDER</h1>
   <p class="subtitle">Enter your budget and preferences below, and let EKVS recommend the perfect meal for your group.</p>
 </header>
@@ -497,7 +498,6 @@
         <button type="button" class="pref-tag" data-val="light" style="background:#fff; border:2.5px solid #000; border-radius:10px; padding:6px 12px; font-weight:800; cursor:pointer; font-family:'Baloo 2', sans-serif; font-size:13px; box-shadow:0 2.5px 0 #000; transition:all 0.1s ease;">Light / Healthy 🥗</button>
         <button type="button" class="pref-tag" data-val="street food" style="background:#fff; border:2.5px solid #000; border-radius:10px; padding:6px 12px; font-weight:800; cursor:pointer; font-family:'Baloo 2', sans-serif; font-size:13px; box-shadow:0 2.5px 0 #000; transition:all 0.1s ease;">Street food 🍢</button>
         <button type="button" class="pref-tag" data-val="drink" style="background:#fff; border:2.5px solid #000; border-radius:10px; padding:6px 12px; font-weight:800; cursor:pointer; font-family:'Baloo 2', sans-serif; font-size:13px; box-shadow:0 2.5px 0 #000; transition:all 0.1s ease;">Drink 🥤</button>
-        <button id="btn-open-map" type="button" style="flex: 1; background: var(--win-green); color: #000; border: 3px solid #000; border-radius: 12px; padding: 10px 14px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 0 #0b6b3c; font-family: 'Baloo 2', sans-serif; font-size: 14px;">🗺️ FOOD MAP</button>
       </div>
       <input type="hidden" id="in-pref" value="" />
 
@@ -555,6 +555,7 @@
       </div>
       <div style="display: flex; gap: 10px; margin-top: 10px;">
         <button id="btn-open-swiper" type="button" style="flex: 1; background: linear-gradient(135deg, #FF2E9F, #FF8C00); color: #fff; border: 3px solid #000; border-radius: 12px; padding: 10px 14px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 0 #8c0a4d; font-family: 'Baloo 2', sans-serif; font-size: 14px;">🔥 FOOD SWIPER</button>
+        <button id="btn-open-map" type="button" style="flex: 1; background: var(--win-green); color: #000; border: 3px solid #000; border-radius: 12px; padding: 10px 14px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 0 #0b6b3c; font-family: 'Baloo 2', sans-serif; font-size: 14px;">🗺️ FOOD MAP</button>
       </div>
       
       <div style="margin-top: 15px; display: flex; align-items: center; gap: 8px; border-top: 2px dashed rgba(0,0,0,0.15); padding-top: 15px;">
@@ -640,6 +641,9 @@
 
   <!-- ================= HISTORY TAB ================= -->
   <section class="panel" id="tab-history">
+    <div style="margin-bottom: 15px; display: flex; gap: 10px; justify-content: flex-end;">
+      <button id="btn-show-ledger" class="claim-btn" style="background: var(--gold); color:#000; margin-top: 0; box-shadow: 0 3px 0 #000; font-weight: 800; font-size: 13px; padding: 6px 14px;">🤝 Split Ledger & Debts</button>
+    </div>
     <div id="history-stats" style="
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
@@ -947,6 +951,11 @@
       <!-- Checkboxes populate dynamically -->
     </div>
     
+    <label style="margin: 10px 0 4px; font-size: 13px;">💳 Who Paid the Bill?</label>
+    <select id="split-paid-by" style="width: 100%; margin-bottom: 15px;">
+      <!-- Populated dynamically from profiles -->
+    </select>
+    
     <div style="font-weight: 800; font-size: 14px; margin-bottom: 20px; color: var(--prize-red);">
       Divided amount: <span id="split-amount-calc">₹0</span> per person
     </div>
@@ -1015,6 +1024,52 @@
 </div>
 
 
+<!-- Receipt Share Modal Dialog -->
+<div id="receipt-share-modal" class="modal-backdrop" style="
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(22, 4, 36, 0.85);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+">
+  <div class="ticket modal-dialog" style="
+    max-width: 420px;
+    width: 100%;
+    margin-bottom: 0;
+    box-shadow: 0 8px 0 #000, 0 8px 24px rgba(0,0,0,.6);
+  ">
+    <h3 class="display" style="margin:0 0 6px; font-size:22px; color: var(--hot-pink);">🧾 Arcade Meal Receipt</h3>
+    <p style="font-size: 13px; font-weight: 700; opacity: 0.8; margin-bottom: 12px; color: #1a0630;">Share this dining pass directly to your WhatsApp group!</p>
+    
+    <div id="receipt-preview-box" style="
+      background: #fff;
+      border: 3px dashed #000;
+      border-radius: 10px;
+      padding: 14px;
+      font-family: monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      color: #000;
+      white-space: pre-wrap;
+      max-height: 220px;
+      overflow-y: auto;
+      margin-bottom: 15px;
+    "></div>
+
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
+      <button id="receipt-btn-close" class="claim-btn" style="background: var(--prize-red); color: #fff; margin-top: 0; box-shadow: 0 3px 0 #8c0012; font-weight: 800; font-size: 13px; padding: 8px 14px;">Close</button>
+      <button id="receipt-btn-copy" class="claim-btn" style="background: var(--gold); color: #000; margin-top: 0; box-shadow: 0 3px 0 #000; font-weight: 800; font-size: 13px; padding: 8px 14px;">📋 Copy</button>
+      <button id="receipt-btn-whatsapp" class="claim-btn" style="background: #25D366; color: #fff; margin-top: 0; box-shadow: 0 3px 0 #075E54; font-weight: 800; font-size: 13px; padding: 8px 14px;">💬 WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Food Swiper ("Tinder for Food") Modal Dialog -->
 <div id="food-swiper-modal" class="modal-backdrop" style="
   display: none;
   position: fixed;
@@ -1079,8 +1134,6 @@
 
 
 <!-- OpenStreetMap / Leaflet Food Map Modal Dialog -->
-
-
 <div id="food-map-modal" class="modal-backdrop" style="
   display: none;
   position: fixed;
@@ -1110,6 +1163,39 @@
 
 
 <!-- Split Ledger / "Who Owes Who" Modal Dialog -->
+<div id="ledger-modal" class="modal-backdrop" style="
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(22, 4, 36, 0.85);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+">
+  <div class="ticket modal-dialog" style="
+    max-width: 480px;
+    width: 100%;
+    margin-bottom: 0;
+    box-shadow: 0 8px 0 #000, 0 8px 24px rgba(0,0,0,.6);
+  ">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+      <h3 class="display" style="margin: 0; font-size: 22px; color: var(--hot-pink);">🤝 SPLIT LEDGER & DEBTS</h3>
+      <button id="ledger-btn-close" style="background: var(--prize-red); color: #fff; border: 2px solid #000; border-radius: 8px; font-weight: 800; cursor: pointer; padding: 4px 10px;">✕</button>
+    </div>
+    <p style="font-size: 13px; font-weight: 700; opacity: 0.8; margin-bottom: 12px; color: #1a0630;">Track running balances: who covered meals and who owes whom.</p>
+    
+    <div id="ledger-balances-list" style="margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px;">
+      <!-- Populated dynamically -->
+    </div>
+
+    <h4 class="display" style="font-size: 14px; margin: 15px 0 6px; color: var(--deep-purple-2);">Recent Split Transactions</h4>
+    <div id="ledger-transactions-list" style="max-height: 160px; overflow-y: auto; border: 2px solid #000; border-radius: 10px; background: #fff; padding: 8px; font-size: 12px;">
+      <!-- Populated dynamically -->
+    </div>
+  </div>
+</div>
 
 
 <div class="status-pill" style="display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
@@ -1472,6 +1558,13 @@ const SplitBillModal = {
         ${profile}
       </label>
     `).join('');
+    const paidBySelect = $("#split-paid-by");
+    if (paidBySelect) {
+      paidBySelect.innerHTML = userProfiles.map(profile => `
+        <option value="${profile}" ${profile.toLowerCase() === suggestedWho.toLowerCase() ? "selected" : ""}>${profile}</option>
+      `).join('');
+    }
+
     this.list.innerHTML = html;
     
     const updateCalculation = () => {
@@ -1491,7 +1584,8 @@ const SplitBillModal = {
         this.el.style.display = "none";
         if (success) {
           const checked = Array.from(this.list.querySelectorAll(".split-checkbox:checked")).map(cb => cb.value);
-          resolve(checked);
+          const paidBy = ($("#split-paid-by") && $("#split-paid-by").value) ? $("#split-paid-by").value : suggestedWho;
+          resolve({ profiles: checked, paidBy });
         } else {
           resolve(null);
         }
@@ -1520,14 +1614,16 @@ async function claimMealAction(claimBtn, people, budgetVal) {
   const amount = parseFloat(claimBtn.dataset.amount);
   
   let selectedProfiles = [suggestedWho];
+  let billPaidBy = suggestedWho;
   const confirmSplit = (userProfiles && userProfiles.length > 1) 
     ? await Modal.confirm("Would you like to split the bill with other profiles?", "Split Bill?") 
     : false;
   
   if (confirmSplit) {
-    const splitWith = await SplitBillModal.show(amount, claimBtn.dataset.place, claimBtn.dataset.item, budgetVal, suggestedWho);
-    if (splitWith) {
-      selectedProfiles = splitWith;
+    const splitResult = await SplitBillModal.show(amount, claimBtn.dataset.place, claimBtn.dataset.item, budgetVal, suggestedWho);
+    if (splitResult && splitResult.profiles && splitResult.profiles.length > 0) {
+      selectedProfiles = splitResult.profiles;
+      billPaidBy = splitResult.paidBy || suggestedWho;
     } else {
       claimBtn.textContent = "✅ SELECT THIS MEAL";
       claimBtn.disabled = false;
@@ -1549,7 +1645,8 @@ async function claimMealAction(claimBtn, people, budgetVal) {
           people: people,
           amount: perPersonAmount,
           budget: perPersonBudget,
-          who: who
+          who: who,
+          paid_by: billPaidBy
         })
       });
     }
@@ -2247,10 +2344,11 @@ $("#btn-suggest").addEventListener("click", async ()=>{
   let acceptedUpgrade = false;
   let upgradeData = null;
   try {
+    const time_of_day = ($("#in-slot") && $("#in-slot").value) ? $("#in-slot").value : "auto";
     const upRes = await fetch(API + "/api/suggest/upgrade", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ budget, people, preference, additional_info, area, variety, who, concurrency_control, dislikes })
+      body: JSON.stringify({ budget, people, preference, additional_info, area, variety, who, concurrency_control, dislikes, time_of_day })
     });
     if (upRes.ok) {
       upgradeData = await upRes.json();
@@ -2272,10 +2370,11 @@ $("#btn-suggest").addEventListener("click", async ()=>{
   }
 
   try{
+    const time_of_day = ($("#in-slot") && $("#in-slot").value) ? $("#in-slot").value : "auto";
     const r = await fetch(API+"/api/suggest", {
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({budget: effectiveBudget, people, preference, additional_info, area, variety, who, concurrency_control, count:40, dislikes})
+      body: JSON.stringify({budget: effectiveBudget, people, preference, additional_info, area, variety, who, concurrency_control, count:40, dislikes, time_of_day})
     });
     const data = await r.json();
 
@@ -2421,9 +2520,11 @@ function renderSuggestionCard(people){
         <span style="font-weight:800; font-size:12px; opacity:.7;">💡 SUGGESTED MEAL</span>
         <h3 style="font-family:'Luckiest Guy', cursive; margin:5px 0 4px; font-size:24px;">${s.item_name}</h3>
         <div class="amount" style="font-family:'Luckiest Guy', cursive; font-size:30px; color:var(--prize-red); margin:8px 0 4px; text-shadow:1px 1px 0 #fff8;">₹${s.expected_amount.toFixed(0)}</div>
-        <div style="font-size:12px; margin-bottom: 15px;">for ${people} ${people > 1 ? "people" : "person"} (₹${s.price_per_person} each)</div>
         <button class="claim-btn" data-place="${s.place_id}" data-item="${s.item_id}" data-amount="${s.expected_amount}" style="width: 100%;">✅ SELECT THIS MEAL</button>
-      </div>
+        <div style="display: flex; gap: 8px; margin-top: 10px;">
+          <button id="btn-share-receipt" type="button" class="claim-btn" style="flex: 1; background: var(--gold); color: #000; box-shadow: 0 3px 0 #000; font-size: 13px; padding: 8px; margin-top: 0;" title="Share Receipt to WhatsApp">🧾 SHARE RECEIPT</button>
+          <button id="btn-navigate-place" type="button" class="claim-btn" style="flex: 1; background: #00d2ff; color: #000; box-shadow: 0 3px 0 #0095b6; font-size: 13px; padding: 8px; margin-top: 0;" title="Walking navigation via Google Maps">🧭 WALK THERE</button>
+        </div>
       
       <div style="display: flex; gap: 10px; margin-top: 15px;">
         <button id="btn-reroll-meal" 
@@ -2476,6 +2577,31 @@ function renderSuggestionCard(people){
   if (addMealBtn) {
     addMealBtn.addEventListener("click", () => {
       AddNewMealModal.show(activeRestaurant.place_name);
+    });
+  }
+
+  // Wire up share receipt button
+  const shareBtn = $("#btn-share-receipt");
+  if (shareBtn) {
+    shareBtn.addEventListener("click", () => {
+      showReceiptModal({
+        placeName: s.place_name,
+        area: s.area,
+        itemName: s.item_name,
+        amount: s.expected_amount,
+        people: people,
+        paidBy: $("#profile-select").value === "all" ? "MegaTron" : $("#profile-select").value,
+        participants: [$("#profile-select").value === "all" ? "Group" : $("#profile-select").value]
+      });
+    });
+  }
+
+  // Wire up navigation button
+  const navBtn = $("#btn-navigate-place");
+  if (navBtn) {
+    navBtn.addEventListener("click", () => {
+      const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(s.place_name + ', ' + (s.area || 'Chennai'))}`;
+      window.open(navUrl, "_blank");
     });
   }
 
@@ -3117,6 +3243,10 @@ async function createGroupPoll(){
     return;
   }
 
+  const time_of_day = ($("#in-slot") && $("#in-slot").value) ? $("#in-slot").value : "auto";
+  const speedChoice = await Modal.prompt("Optional Speed Poll timer in seconds (e.g. 60 or 120, or leave blank for unlimited):", "", "⏱️ Speed Poll Setup");
+  const duration_seconds = (speedChoice && !isNaN(parseInt(speedChoice.trim()))) ? parseInt(speedChoice.trim()) : null;
+
   $("#btn-create-poll").disabled = true;
   $("#results").innerHTML = `<div class="empty">Creating poll room and choosing candidates... 🔮</div>`;
 
@@ -3124,7 +3254,7 @@ async function createGroupPoll(){
     const r = await fetch(API+"/api/polls", {
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({budget, people, preference, additional_info, area, variety, concurrency_control})
+      body: JSON.stringify({budget, people, preference, additional_info, area, variety, concurrency_control, time_of_day, duration_seconds})
     });
     const data = await r.json();
     if(!r.ok){
@@ -3317,6 +3447,12 @@ function renderPollVotingState(poll){
       <div style="font-size: 13px; font-weight: 700; opacity: 0.7; margin-bottom: 20px;">
         👤 Voting as: <strong style="color: var(--deep-purple-2);">${who}</strong>
       </div>
+
+      ${poll.expires_at ? `
+        <div id="speed-poll-banner" style="background: var(--gold); color: #000; border: 2.5px solid #000; border-radius: 10px; padding: 8px 12px; margin-bottom: 15px; font-weight: 800; font-size: 14px; text-align: center; box-shadow: 0 3px 0 #000;">
+          ⏱️ SPEED POLL CLOSES IN: <span id="speed-poll-secs" style="font-weight: 800; font-size: 16px;">...</span>
+        </div>
+      ` : ""}
       
       <div style="margin-bottom: 20px;">
         ${candidatesHTML}
@@ -3407,6 +3543,35 @@ function renderPollVotingState(poll){
       bar.style.width = bar.dataset.pct + "%";
     });
   }, 50);
+
+  if (speedPollCountdownTimer) {
+    clearInterval(speedPollCountdownTimer);
+    speedPollCountdownTimer = null;
+  }
+  if (poll.expires_at && poll.active) {
+    const updateCountdown = () => {
+      const expiresDate = new Date(poll.expires_at);
+      const now = new Date();
+      const diffSec = Math.max(0, Math.floor((expiresDate - now) / 1000));
+      const span = $("#speed-poll-secs");
+      if (span) {
+        span.textContent = `${diffSec}s`;
+        if (diffSec <= 10 && diffSec > 0) {
+          AudioFX.tick();
+          span.style.color = "var(--prize-red)";
+        }
+      }
+      if (diffSec === 0) {
+        clearInterval(speedPollCountdownTimer);
+        speedPollCountdownTimer = null;
+        if (isPollCreator) {
+          fetch(`${API}/api/polls/${poll.code}/close`, { method: "POST" }).catch(() => {});
+        }
+      }
+    };
+    updateCountdown();
+    speedPollCountdownTimer = setInterval(updateCountdown, 1000);
+  }
 
   // Bind write-in click listener
   $("#btn-poll-submit-write-in").addEventListener("click", async () => {
@@ -3627,27 +3792,55 @@ function renderPollWinner(winner){
         <span style="font-weight:800; font-size:12px; opacity:.7; color: #0b6b3c;">💡 SUGGESTED MEAL</span>
         <h3 style="font-family:'Luckiest Guy', cursive; margin:5px 0 4px; font-size:24px; color: #1a0630;">${winner.item_name}</h3>
         <div class="amount" style="font-family:'Luckiest Guy', cursive; font-size:30px; color:var(--prize-red); margin:8px 0 4px; text-shadow:1px 1px 0 #fff8;">₹${winner.expected_amount.toFixed(0)}</div>
-        <div style="font-size:12px; margin-bottom: 15px; color: #333;">for ${people} ${people > 1 ? "people" : "person"} (₹${winner.price_per_person} each)</div>
         <button class="claim-btn" data-place="${winner.place_id}" data-item="${winner.item_id}" data-amount="${winner.expected_amount}" style="width: 100%; background: var(--win-green); color: #000; box-shadow: 0 4px 0 #0b6b3c;">✅ SELECT THIS MEAL</button>
+        <div style="display: flex; gap: 8px; margin-top: 10px;">
+          <button id="btn-share-winner-receipt" type="button" class="claim-btn" style="flex: 1; background: var(--gold); color: #000; box-shadow: 0 3px 0 #000; font-size: 13px; padding: 8px; margin-top: 0;" title="Share Receipt to WhatsApp">🧾 SHARE RECEIPT</button>
+          <button id="btn-navigate-winner" type="button" class="claim-btn" style="flex: 1; background: #00d2ff; color: #000; box-shadow: 0 3px 0 #0095b6; font-size: 13px; padding: 8px; margin-top: 0;" title="Walking navigation via Google Maps">🧭 WALK THERE</button>
+        </div>
       </div>
     </div>
   `;
 
-  const claimBtn = $("#results .claim-btn");
-  claimBtn.addEventListener("click", async () => {
-    const success = await claimMealAction(claimBtn, people, parseFloat($("#in-budget").value) || 0.0);
-    if (success) {
-      setTimeout(() => {
-        const resultsDiv = $("#results");
-        resultsDiv.style.transition = "opacity 0.6s ease";
-        resultsDiv.style.opacity = "0";
+  const claimBtn = $("#results .claim-btn[data-place]");
+  if (claimBtn) {
+    claimBtn.addEventListener("click", async () => {
+      const success = await claimMealAction(claimBtn, people, parseFloat($("#in-budget").value) || 0.0);
+      if (success) {
         setTimeout(() => {
-          resultsDiv.innerHTML = "";
-          resultsDiv.style.opacity = "1";
-        }, 600);
-      }, 1200);
-    }
-  });
+          const resultsDiv = $("#results");
+          resultsDiv.style.transition = "opacity 0.6s ease";
+          resultsDiv.style.opacity = "0";
+          setTimeout(() => {
+            resultsDiv.innerHTML = "";
+            resultsDiv.style.opacity = "1";
+          }, 600);
+        }, 1200);
+      }
+    });
+  }
+
+  const shareWinnerBtn = $("#btn-share-winner-receipt");
+  if (shareWinnerBtn) {
+    shareWinnerBtn.addEventListener("click", () => {
+      showReceiptModal({
+        placeName: winner.place_name,
+        area: winner.area,
+        itemName: winner.item_name,
+        amount: winner.expected_amount,
+        people: people,
+        paidBy: $("#profile-select").value === "all" ? "MegaTron" : $("#profile-select").value,
+        participants: [$("#profile-select").value === "all" ? "Group" : $("#profile-select").value]
+      });
+    });
+  }
+
+  const navWinnerBtn = $("#btn-navigate-winner");
+  if (navWinnerBtn) {
+    navWinnerBtn.addEventListener("click", () => {
+      const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(winner.place_name + ', ' + (winner.area || 'Chennai'))}`;
+      window.open(navUrl, "_blank");
+    });
+  }
 }
 
 // Profile management logic
@@ -4437,16 +4630,20 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-$("#btn-config-api").addEventListener("click", async () => {
-  const currentUrl = localStorage.getItem("API_BASE_URL") || window.API_BASE_URL || "";
-  const newUrl = await Modal.prompt("Enter your Render Backend API URL (or leave empty for default):", currentUrl, "⚙️ Backend API Server");
-  if (newUrl !== null) {
-    localStorage.setItem("API_BASE_URL", newUrl.trim());
-    API = getApiBaseUrl();
-    await checkStatus();
-    loadPlaces();
-  }
-});
+// ===========================================================================
+// NEW FEATURES: PWA, Weather, Time-of-Day, Voice Search, Swiper, Map, Receipt & Ledger
+// ===========================================================================
+
+// 1. PWA Service Worker Registration
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").then((reg) => {
+      console.log("EKVS PWA Service Worker registered:", reg.scope);
+    }).catch((err) => {
+      console.warn("PWA SW registration error:", err);
+    });
+  });
+}
 
 // 2. Weather Module (Open-Meteo, 100% Free, no API Key needed)
 let currentWeatherDesc = "";
@@ -4508,9 +4705,6 @@ if ($("#weather-badge")) {
     }
   });
 }
-
-
-initWeather();
 
 // 3. Time-of-Day Slot Module
 function getAutoTimeSlot() {
@@ -4653,8 +4847,131 @@ function initVoiceSearch() {
   };
 }
 
+// 5. WhatsApp & Receipt Share
+function showReceiptModal(details) {
+  const modal = $("#receipt-share-modal");
+  const box = $("#receipt-preview-box");
+  if (!modal || !box) return;
 
-initVoiceSearch();
+  const perPerson = (details.amount / (details.people || 1)).toFixed(0);
+  const dateStr = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+
+  const text = 
+`🎰 *EKVS DINING PASS & BILL* 🎰
+--------------------------------
+📅 Date: ${dateStr}
+📍 Restaurant: ${details.placeName}${details.area ? " (" + details.area + ")" : ""}
+🍽️ Meal: ${details.itemName}
+💰 Total Bill: ₹${details.amount}
+👥 Split: ₹${perPerson} / person (${details.people} People)
+👤 Paid By: ${details.paidBy || "Group"}
+${details.participants && details.participants.length > 0 ? "✨ Crew: " + details.participants.join(", ") + "\n" : ""}--------------------------------
+🎲 Decided via EKVS Food Decider!`;
+
+  box.textContent = text;
+  modal.style.display = "flex";
+}
+
+if ($("#receipt-btn-close")) {
+  $("#receipt-btn-close").addEventListener("click", () => {
+    $("#receipt-share-modal").style.display = "none";
+  });
+}
+
+if ($("#receipt-btn-copy")) {
+  $("#receipt-btn-copy").addEventListener("click", async () => {
+    const text = $("#receipt-preview-box").textContent;
+    try {
+      await navigator.clipboard.writeText(text);
+      $("#receipt-btn-copy").textContent = "✅ Copied!";
+      setTimeout(() => { $("#receipt-btn-copy").textContent = "📋 Copy"; }, 1500);
+    } catch(e) {
+      Modal.alert("Could not copy automatically. Please select text and copy manually.");
+    }
+  });
+}
+
+if ($("#receipt-btn-whatsapp")) {
+  $("#receipt-btn-whatsapp").addEventListener("click", () => {
+    const text = $("#receipt-preview-box").textContent;
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+    window.open(url, "_blank");
+  });
+}
+
+// 6. OpenStreetMap & Leaflet Interactive Map
+const CHENNAI_AREA_COORDS = {
+  "purasaiwalkam": [13.0905, 80.2580],
+  "purasaiwalkam high road": [13.0915, 80.2565],
+  "kosapet": [13.0910, 80.2645],
+  "bricklin road": [13.0872, 80.2520],
+  "gangadeeshwarar koil street": [13.0865, 80.2545],
+  "perambur": [13.1110, 80.2435],
+  "dashamakkan": [13.0955, 80.2570],
+  "kilpauk": [13.0815, 80.2415],
+  "choolai": [13.0890, 80.2680]
+};
+
+function getCoordsForPlace(place) {
+  const areaKey = (place.area || "").trim().toLowerCase();
+  if (CHENNAI_AREA_COORDS[areaKey]) {
+    const hash = (place.id || place.name || "").split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
+    const jitterLat = ((hash % 10) - 5) * 0.0003;
+    const jitterLon = (((hash >> 2) % 10) - 5) * 0.0003;
+    const [lat, lon] = CHENNAI_AREA_COORDS[areaKey];
+    return [lat + jitterLat, lon + jitterLon];
+  }
+  return [13.0890, 80.2550];
+}
+
+function openFoodMap() {
+  const modal = $("#food-map-modal");
+  if (!modal) return;
+  modal.style.display = "flex";
+
+  if (!leafletMapInstance && window.L) {
+    leafletMapInstance = L.map("leaflet-food-map").setView([13.0890, 80.2560], 14);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(leafletMapInstance);
+  }
+
+  setTimeout(() => {
+    if (leafletMapInstance) {
+      leafletMapInstance.invalidateSize();
+      leafletMapInstance.eachLayer((layer) => {
+        if (layer instanceof L.Marker) leafletMapInstance.removeLayer(layer);
+      });
+
+      placesCache.forEach(p => {
+        const coords = getCoordsForPlace(p);
+        const marker = L.marker(coords).addTo(leafletMapInstance);
+        const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(p.name + ', ' + (p.area || 'Chennai'))}`;
+        marker.bindPopup(`
+          <div style="font-family:'Baloo 2',sans-serif; text-align:center;">
+            <b style="font-size:15px; color:#1a0630;">${escapeHTML(p.name)}</b><br/>
+            <span style="font-size:12px; color:#666;">${escapeHTML(p.area || "Chennai")}</span><br/>
+            ${p.cuisine ? `<span style="font-size:12px; font-weight:700; color:var(--deep-purple-2);">${escapeHTML(p.cuisine)}</span><br/>` : ''}
+            <div style="margin-top:8px;">
+              <a href="${navUrl}" target="_blank" style="background:#00d2ff; color:#000; border:2px solid #000; border-radius:6px; padding:4px 8px; text-decoration:none; font-weight:800; font-size:12px;">🧭 Walk / Navigate</a>
+            </div>
+          </div>
+        `);
+      });
+    }
+  }, 200);
+}
+
+if ($("#map-btn-close")) {
+  $("#map-btn-close").addEventListener("click", () => {
+    $("#food-map-modal").style.display = "none";
+  });
+}
+
+if ($("#btn-open-map")) {
+  $("#btn-open-map").addEventListener("click", openFoodMap);
+}
 
 // 7. "Tinder for Food" (Food Swiper Deck)
 let swiperCandidates = [];
@@ -4779,83 +5096,78 @@ if ($("#swiper-btn-close")) $("#swiper-btn-close").addEventListener("click", () 
 });
 if ($("#btn-open-swiper")) $("#btn-open-swiper").addEventListener("click", openFoodSwiperModal);
 
+// 8. Split Ledger & Debts Module
+async function loadLedgerModal() {
+  const modal = $("#ledger-modal");
+  const balancesList = $("#ledger-balances-list");
+  const transList = $("#ledger-transactions-list");
+  if (!modal || !balancesList) return;
 
-
-// 6. OpenStreetMap & Leaflet Interactive Map
-const CHENNAI_AREA_COORDS = {
-  "purasaiwalkam": [13.0905, 80.2580],
-  "purasaiwalkam high road": [13.0915, 80.2565],
-  "kosapet": [13.0910, 80.2645],
-  "bricklin road": [13.0872, 80.2520],
-  "gangadeeshwarar koil street": [13.0865, 80.2545],
-  "perambur": [13.1110, 80.2435],
-  "dashamakkan": [13.0955, 80.2570],
-  "kilpauk": [13.0815, 80.2415],
-  "choolai": [13.0890, 80.2680]
-};
-
-function getCoordsForPlace(place) {
-  const areaKey = (place.area || "").trim().toLowerCase();
-  if (CHENNAI_AREA_COORDS[areaKey]) {
-    const hash = (place.id || place.name || "").split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
-    const jitterLat = ((hash % 10) - 5) * 0.0003;
-    const jitterLon = (((hash >> 2) % 10) - 5) * 0.0003;
-    const [lat, lon] = CHENNAI_AREA_COORDS[areaKey];
-    return [lat + jitterLat, lon + jitterLon];
-  }
-  return [13.0890, 80.2550];
-}
-
-function openFoodMap() {
-  const modal = $("#food-map-modal");
-  if (!modal) return;
+  balancesList.innerHTML = `<div style="text-align:center; padding:10px; font-weight:800;">Loading ledger balances... ⏳</div>`;
   modal.style.display = "flex";
 
-  if (!leafletMapInstance && window.L) {
-    leafletMapInstance = L.map("leaflet-food-map").setView([13.0890, 80.2560], 14);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19,
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(leafletMapInstance);
-  }
+  try {
+    const res = await fetch(API + "/api/ledger");
+    if (!res.ok) throw new Error("Ledger fetch failed");
+    const data = await res.json();
 
-  setTimeout(() => {
-    if (leafletMapInstance) {
-      leafletMapInstance.invalidateSize();
-      leafletMapInstance.eachLayer((layer) => {
-        if (layer instanceof L.Marker) leafletMapInstance.removeLayer(layer);
-      });
-
-      placesCache.forEach(p => {
-        const coords = getCoordsForPlace(p);
-        const marker = L.marker(coords).addTo(leafletMapInstance);
-        const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(p.name + ', ' + (p.area || 'Chennai'))}`;
-        marker.bindPopup(`
-          <div style="font-family:'Baloo 2',sans-serif; text-align:center;">
-            <b style="font-size:15px; color:#1a0630;">${escapeHTML(p.name)}</b><br/>
-            <span style="font-size:12px; color:#666;">${escapeHTML(p.area || "Chennai")}</span><br/>
-            ${p.cuisine ? `<span style="font-size:12px; font-weight:700; color:var(--deep-purple-2);">${escapeHTML(p.cuisine)}</span><br/>` : ''}
-            <div style="margin-top:8px;">
-              <a href="${navUrl}" target="_blank" style="background:#00d2ff; color:#000; border:2px solid #000; border-radius:6px; padding:4px 8px; text-decoration:none; font-weight:800; font-size:12px;">🧭 Walk / Navigate</a>
+    if (!data.balances || data.balances.length === 0) {
+      balancesList.innerHTML = `<div style="text-align:center; padding:12px; font-weight:700; color:#666;">No recorded split meals yet! Claim split meals to build your debt ledger.</div>`;
+    } else {
+      balancesList.innerHTML = data.balances.map(b => {
+        const isOwed = b.net_balance > 0;
+        const owes = b.net_balance < 0;
+        const color = isOwed ? "var(--win-green)" : owes ? "var(--prize-red)" : "#666";
+        const statusText = isOwed ? `is owed ₹${b.net_balance.toFixed(0)} 🟢` : owes ? `owes ₹${Math.abs(b.net_balance).toFixed(0)} 🔴` : "settled up ⚪";
+        return `
+          <div style="background:#fff; border:2.5px solid #000; border-radius:10px; padding:10px 14px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 0 #000;">
+            <div>
+              <b style="font-size:15px; color:#1a0630;">${escapeHTML(b.user)}</b><br/>
+              <span style="font-size:11px; color:#666;">Paid: ₹${b.total_paid} | Consumed: ₹${b.total_consumed}</span>
+            </div>
+            <div style="font-weight:800; font-size:14px; color:${color};">
+              ${statusText}
             </div>
           </div>
-        `);
-      });
+        `;
+      }).join("");
     }
-  }, 200);
+
+    if (!data.recent_transactions || data.recent_transactions.length === 0) {
+      transList.innerHTML = `<div style="color:#666; padding:6px;">No transactions recorded yet.</div>`;
+    } else {
+      transList.innerHTML = data.recent_transactions.map(t => `
+        <div style="border-bottom:1px dashed #ccc; padding:6px 0;">
+          <b>${escapeHTML(t.place_name)}</b> — ₹${t.amount} (₹${t.per_person}/ea)<br/>
+          <span style="color:#555;">Paid by: <b>${escapeHTML(t.paid_by)}</b> | Crew: ${t.participants.map(escapeHTML).join(", ")}</span>
+        </div>
+      `).join("");
+    }
+  } catch(e) {
+    balancesList.innerHTML = `<div style="color:var(--prize-red); padding:10px; font-weight:800;">Failed to load ledger from backend.</div>`;
+  }
 }
 
-if ($("#map-btn-close")) {
-  $("#map-btn-close").addEventListener("click", () => {
-    $("#food-map-modal").style.display = "none";
-  });
-}
+if ($("#btn-show-ledger")) $("#btn-show-ledger").addEventListener("click", loadLedgerModal);
+if ($("#ledger-btn-close")) $("#ledger-btn-close").addEventListener("click", () => {
+  $("#ledger-modal").style.display = "none";
+});
 
-if ($("#btn-open-map")) {
-  $("#btn-open-map").addEventListener("click", openFoodMap);
-}
+// Initialize on page load
+initWeather();
+updateTimeSlotBadge();
+initVoiceSearch();
 
-
+$("#btn-config-api").addEventListener("click", async () => {
+  const currentUrl = localStorage.getItem("API_BASE_URL") || window.API_BASE_URL || "";
+  const newUrl = await Modal.prompt("Enter your Render Backend API URL (or leave empty for default):", currentUrl, "⚙️ Backend API Server");
+  if (newUrl !== null) {
+    localStorage.setItem("API_BASE_URL", newUrl.trim());
+    API = getApiBaseUrl();
+    await checkStatus();
+    loadPlaces();
+  }
+});
 </script>
 
 </body>
