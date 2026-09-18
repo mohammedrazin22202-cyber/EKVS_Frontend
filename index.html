@@ -2942,18 +2942,21 @@ function populateAreas(){
 }
 
 async function loadPlaces(){
-  const r = await fetch(API+"/api/places");
-  placesCache = await r.json();
-  const itemsR = await fetch(API+"/api/items");
-  const allItems = await itemsR.json();
-  itemsCache = allItems;
+  try {
+    const r = await fetch(API+"/api/places");
+    const pData = r.ok ? await r.json() : [];
+    placesCache = Array.isArray(pData) ? pData : [];
+    const itemsR = await fetch(API+"/api/items");
+    const iData = itemsR.ok ? await itemsR.json() : [];
+    const allItems = Array.isArray(iData) ? iData : [];
+    itemsCache = allItems;
 
-  populateAreas();
+    populateAreas();
 
-  if(placesCache.length === 0){
-    $("#places-list").innerHTML = `<div class="empty">No places yet — add your first one above! 🎉</div>`;
-    return;
-  }
+    if(placesCache.length === 0){
+      $("#places-list").innerHTML = `<div class="empty">No places yet — add your first one above! 🎉</div>`;
+      return;
+    }
 
   const roleLabels = { main: "🍱 Main", snack: "🍟 Snack", side: "🥗 Side", dessert: "🍨 Dessert", beverage: "🥤 Drink" };
 
@@ -3126,6 +3129,14 @@ async function loadPlaces(){
       });
     });
   });
+  } catch (err) {
+    console.error("Failed to load places:", err);
+    placesCache = [];
+    itemsCache = [];
+    if ($("#places-list")) {
+      $("#places-list").innerHTML = `<div class="empty">Unable to load places from server. Please check your connection. ⚠️</div>`;
+    }
+  }
 }
 
 // ---- Inline menu-item rows on the Add Place form ----
@@ -3702,7 +3713,7 @@ function renderPollVotingState(poll){
         const res = await fetch(API + `/api/polls/${poll.code}/dictator_close`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ candidate_id: candidateId, who: who })
+          body: JSON.stringify({ candidate_id: candidateId, who: poll.dictator || who })
         });
         const data = await res.json();
         if (res.ok) {
@@ -3983,14 +3994,16 @@ $("#btn-add-profile").addEventListener("click", async () => {
 
 // ---------------- History ----------------
 async function loadHistory(){
-  const r = await fetch(API+"/api/history?days=30");
-  const rows = await r.json();
-  
-  const activeProfile = $("#profile-select").value;
-  let filteredRows = rows;
-  if (activeProfile !== "all") {
-    filteredRows = rows.filter(h => h.who && h.who.toLowerCase() === activeProfile.toLowerCase());
-  }
+  try {
+    const r = await fetch(API+"/api/history?days=30");
+    const data = r.ok ? await r.json() : [];
+    const rows = Array.isArray(data) ? data : [];
+    
+    const activeProfile = $("#profile-select").value;
+    let filteredRows = rows;
+    if (activeProfile !== "all") {
+      filteredRows = rows.filter(h => h.who && h.who.toLowerCase() === activeProfile.toLowerCase());
+    }
   
   // Calculate dining streak and badges
   let streak = 0;
@@ -4192,6 +4205,15 @@ async function loadHistory(){
       loadHistory();
     });
   });
+  } catch (err) {
+    console.error("Failed to load history:", err);
+    if ($("#history-stats")) $("#history-stats").style.display = "none";
+    if ($("#history-dashboard")) $("#history-dashboard").style.display = "none";
+    if ($("#history-calendar-view")) $("#history-calendar-view").style.display = "none";
+    if ($("#history-list")) {
+      $("#history-list").innerHTML = `<div class="empty">Unable to load meal history from server. Please check your connection. ⚠️</div>`;
+    }
+  }
 }
 
 async function loadLeaderboard() {
@@ -4657,13 +4679,17 @@ $all(".modal-backdrop").forEach(modal => {
 
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
-    $all(".modal-backdrop").forEach(modal => {
-      if (modal.style.display !== "none" && modal.style.display !== "") {
-        modal.style.display = "none";
-        const cancelBtn = modal.querySelector(".claim-btn[id*='cancel']");
-        if (cancelBtn) cancelBtn.click();
-      }
+    const visibleModals = Array.from($all(".modal-backdrop")).filter(m => m.style.display !== "none" && m.style.display !== "");
+    if (visibleModals.length === 0) return;
+    visibleModals.sort((a, b) => {
+      const zA = parseInt(window.getComputedStyle(a).zIndex) || 0;
+      const zB = parseInt(window.getComputedStyle(b).zIndex) || 0;
+      return zB - zA;
     });
+    const topModal = visibleModals[0];
+    topModal.style.display = "none";
+    const cancelBtn = topModal.querySelector(".claim-btn[id*='cancel']");
+    if (cancelBtn) cancelBtn.click();
   }
 });
 
