@@ -4993,6 +4993,15 @@ function openFoodSwiperModal() {
   renderSwiperCard();
 }
 
+const SWIPER_CARD_BODY_TEMPLATE = `
+  <div id="swiper-card-emoji" style="font-size: 48px; margin-bottom: 8px;">🍱</div>
+  <div id="swiper-card-place" style="font-size: 14px; font-weight: 800; color: var(--deep-purple-2); letter-spacing: 0.5px;">Restaurant</div>
+  <div id="swiper-card-dish" style="font-family: 'Luckiest Guy', cursive; font-size: 26px; color: #1a0630; margin: 6px 0;">Item Name</div>
+  <div id="swiper-card-price" style="font-family: 'Luckiest Guy', cursive; font-size: 28px; color: var(--prize-red);">₹0</div>
+  <div id="swiper-card-split" style="font-size: 12px; font-weight: 700; color: #666; margin-bottom: 8px;">for 1 person</div>
+  <div id="swiper-card-tags" style="font-size: 12px; font-weight: 800; color: #444;">tags</div>
+`;
+
 function renderSwiperCard() {
   const card = $("#swiper-card-body");
   const counter = $("#swiper-card-counter");
@@ -5009,9 +5018,14 @@ function renderSwiperCard() {
     const restartBtn = $("#swiper-btn-restart");
     if (restartBtn) restartBtn.addEventListener("click", () => {
       swiperCurrentIdx = 0;
+      card.innerHTML = SWIPER_CARD_BODY_TEMPLATE;
       renderSwiperCard();
     });
     return;
+  }
+
+  if (!$("#swiper-card-emoji")) {
+    card.innerHTML = SWIPER_CARD_BODY_TEMPLATE;
   }
 
   const s = swiperCandidates[swiperCurrentIdx];
