@@ -4067,6 +4067,8 @@ async function loadHistory(){
   
   if(filteredRows.length === 0){
     $("#history-stats").style.display = "none";
+    if ($("#history-dashboard")) $("#history-dashboard").style.display = "none";
+    if ($("#history-calendar-view")) $("#history-calendar-view").style.display = "none";
     $("#history-list").innerHTML = `<div class="empty">No meal history for ${activeProfile === "all" ? "any profile" : activeProfile} in the last 30 days. Go select a meal! 🎉</div>`;
     return;
   }
@@ -4738,6 +4740,7 @@ if ($("#weather-badge")) {
       notesInput.value = (notesInput.value ? notesInput.value + ", " : "") + "comfort food";
       Modal.alert("🌤️ Weather recommendation tag applied!", "Weather Filter");
     }
+    unlockFindMealButton();
   });
 }
 
@@ -4786,6 +4789,7 @@ $all(".slot-tag").forEach(btn => {
       $("#in-slot").value = btn.dataset.slot;
     }
     updateTimeSlotBadge();
+    unlockFindMealButton();
   });
 });
 
