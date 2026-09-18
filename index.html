@@ -2558,7 +2558,8 @@ function renderSuggestionCard(people){
         </button>
       </div>
     </div>
-    ${sessionVetoedPlaceIds.size > 0 ? `
+  </div>
+  ${sessionVetoedPlaceIds.size > 0 ? `
       <div style="margin-top: 15px; text-align: left; background: rgba(255,255,255,0.06); padding: 12px; border-radius: 12px; border: 2.5px dashed var(--prize-red); box-shadow: 0 4px 0 #000;">
         <div style="font-weight: 800; font-size: 13px; color: var(--cream); margin-bottom: 6px;">🚫 VETOED PLACES IN THIS SESSION:</div>
         <div style="display: flex; gap: 6px; flex-wrap: wrap;">
@@ -2864,7 +2865,40 @@ async function vetoActiveRestaurant(people) {
 
   if (revealedSuggestions.length === 0 || currentSuggestions.length === 0) {
     unlockFindMealButton();
-    $("#results").innerHTML = `<div class="empty">All options have been vetoed for this session! Remove a veto below or adjust your search filters. 🚫</div>`;
+    $("#results").innerHTML = `
+      <div class="empty">All options have been vetoed for this session! Remove a veto below or adjust your search filters. 🚫</div>
+      ${sessionVetoedPlaceIds.size > 0 ? `
+        <div style="margin-top: 15px; text-align: left; background: rgba(255,255,255,0.06); padding: 12px; border-radius: 12px; border: 2.5px dashed var(--prize-red); box-shadow: 0 4px 0 #000;">
+          <div style="font-weight: 800; font-size: 13px; color: var(--cream); margin-bottom: 6px;">🚫 VETOED PLACES IN THIS SESSION:</div>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            ${Array.from(sessionVetoedPlaceIds).map(pid => `
+              <span style="background: rgba(232, 17, 45, 0.15); border: 2px solid var(--prize-red); border-radius: 6px; padding: 4px 8px; font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; gap: 6px; color: var(--cream);">
+                ${sessionVetoedPlaceNames[pid] || 'Restaurant'}
+                <button class="unveto-btn" data-place-id="${pid}" style="background:none; border:none; color:var(--prize-red); cursor:pointer; font-weight:800; padding:0; font-size:12px; line-height: 1;">✕</button>
+              </span>
+            `).join('')}
+          </div>
+        </div>
+      ` : ""}
+    `;
+    $all(".unveto-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const pid = btn.dataset.placeId;
+        sessionVetoedPlaceIds.delete(pid);
+        delete sessionVetoedPlaceNames[pid];
+        currentSuggestions = allSuggestionsCache.filter(cand => !sessionVetoedPlaceIds.has(cand.place_id));
+        if (currentSuggestions.length > 0) {
+          const firstCand = currentSuggestions[0];
+          firstCand.revealedMeals = [firstCand];
+          firstCand.activeMealIndex = 0;
+          revealedSuggestions = [firstCand];
+          activeRevealedIndex = 0;
+          renderSuggestionCard(people);
+        } else {
+          renderSuggestionCard(people);
+        }
+      });
+    });
     return;
   }
 
