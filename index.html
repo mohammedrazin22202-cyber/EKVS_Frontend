@@ -767,7 +767,7 @@
     box-shadow: 0 8px 0 #000, 0 8px 24px rgba(0,0,0,.6);
   ">
     <h3 id="modal-title" class="display" style="margin:0 0 10px; font-size:22px; color: var(--hot-pink);">Notice</h3>
-    <p id="modal-message" style="margin: 10px 0 20px; font-weight: 700; font-size: 15px; color: #1a0630;"></p>
+    <p id="modal-message" style="margin: 10px 0 20px; font-weight: 700; font-size: 15px; color: #1a0630; white-space: pre-line;"></p>
     
     <div id="modal-prompt-container" style="display: none; margin-bottom: 20px;">
       <input type="text" id="modal-input" style="width: 100%;" />
@@ -4057,7 +4057,7 @@ async function loadHistory(){
     if (pContainer) {
       badgesRow = document.createElement("div");
       badgesRow.id = "profile-badges-row";
-      badgesRow.style = "margin-top: 6px; display: flex; gap: 4px; justify-content: flex-end; flex-wrap: wrap;";
+      badgesRow.style.cssText = "width: 100%; margin-top: 6px; display: flex; gap: 4px; justify-content: flex-end; flex-wrap: wrap;";
       pContainer.appendChild(badgesRow);
     }
   }
@@ -4371,7 +4371,7 @@ function renderAnalyticsDashboard(filteredRows) {
     const maxVal = Math.max(cumSpent, cumSaved, 100);
 
     function mapX(xIdx) {
-      return 40 + (xIdx / 29) * 420;
+      return 40 + (xIdx / 29) * 440;
     }
     function mapY(val) {
       return 130 - (val / maxVal) * 115;
