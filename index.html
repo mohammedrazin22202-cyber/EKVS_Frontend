@@ -1357,6 +1357,7 @@ let currentPollCode = null;
 let isPollCreator = false;
 let userHasVoted = false;
 let pollSocket = null;
+let speedPollCountdownTimer = null;
 
 function connectPollWebSocket(code) {
   if (pollSocket) {
@@ -4923,6 +4924,8 @@ function getCoordsForPlace(place) {
   }
   return [13.0890, 80.2550];
 }
+
+let leafletMapInstance = null;
 
 function openFoodMap() {
   const modal = $("#food-map-modal");
