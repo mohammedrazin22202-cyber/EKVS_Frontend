@@ -427,6 +427,7 @@
   <span id="weather-badge" class="badge" style="background:#00d2ff; color:#000; margin-left: 6px; cursor:pointer;" title="Live Weather (Click to toggle weather recommendations)">🌤️ Loading Weather...</span>
   <span id="time-badge" class="badge" style="background:var(--win-green); color:#000; margin-left: 6px; cursor:pointer;" title="Current meal time slot">🕒 Auto (Slot)</span>
   <span id="sound-toggle-btn" class="badge" style="background:var(--gold); color:#000; margin-left: 6px; cursor:pointer;" title="Toggle sound effects">🔊 Sound: ON</span>
+  <span id="pwa-install-badge" class="badge" style="background:var(--hot-pink); color:#fff; margin-left: 6px; cursor:pointer; display:none;" title="Install EKVS App">📲 Install App</span>
   <h1 class="title">EKVS FOOD DECIDER</h1>
   <p class="subtitle">Enter your budget and preferences below, and let EKVS recommend the perfect meal for your group.</p>
 </header>
@@ -4757,7 +4758,9 @@ document.addEventListener("keydown", (e) => {
 // NEW FEATURES: PWA, Weather, Time-of-Day, Voice Search, Swiper, Map, Receipt & Ledger
 // ===========================================================================
 
-// 1. PWA Service Worker Registration
+// 1. PWA Service Worker Registration & Install Prompt
+let deferredInstallPrompt = null;
+
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("./sw.js").then((reg) => {
@@ -4767,6 +4770,31 @@ if ("serviceWorker" in navigator) {
     });
   });
 }
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  const installBadge = $("#pwa-install-badge");
+  if (installBadge) {
+    installBadge.style.display = "inline-block";
+    installBadge.addEventListener("click", async () => {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      const { outcome } = await deferredInstallPrompt.userChoice;
+      if (outcome === "accepted") {
+        installBadge.style.display = "none";
+        Modal.alert("🎉 EKVS has been installed on your home screen!", "PWA Installed");
+      }
+      deferredInstallPrompt = null;
+    });
+  }
+});
+
+window.addEventListener("appinstalled", () => {
+  const installBadge = $("#pwa-install-badge");
+  if (installBadge) installBadge.style.display = "none";
+  console.log("EKVS PWA successfully installed!");
+});
 
 // 2. Weather Module (Open-Meteo, 100% Free, no API Key needed)
 let currentWeatherDesc = "";

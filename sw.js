@@ -1,5 +1,5 @@
 // EKVS Food Decider - Service Worker for Offline Caching & PWA
-const CACHE_NAME = "ekvs-cache-v1";
+const CACHE_NAME = "ekvs-cache-v2";
 const STATIC_ASSETS = [
   "./",
   "./index.html",
@@ -7,7 +7,9 @@ const STATIC_ASSETS = [
   "./logo.png",
   "./manifest.json",
   "https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Baloo+2:wght@500;700;800&display=swap",
-  "https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.3/confetti.browser.min.js"
+  "https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.3/confetti.browser.min.js",
+  "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css",
+  "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
 ];
 
 self.addEventListener("install", (event) => {
