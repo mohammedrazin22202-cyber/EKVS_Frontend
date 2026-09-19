@@ -426,6 +426,7 @@
   <span class="badge">⭐ EKVS MEAL DECIDER ⭐</span>
   <span id="weather-badge" class="badge" style="background:#00d2ff; color:#000; margin-left: 6px; cursor:pointer;" title="Live Weather (Click to toggle weather recommendations)">🌤️ Loading Weather...</span>
   <span id="time-badge" class="badge" style="background:var(--win-green); color:#000; margin-left: 6px; cursor:pointer;" title="Current meal time slot">🕒 Auto (Slot)</span>
+  <span id="sound-toggle-btn" class="badge" style="background:var(--gold); color:#000; margin-left: 6px; cursor:pointer;" title="Toggle sound effects">🔊 Sound: ON</span>
   <h1 class="title">EKVS FOOD DECIDER</h1>
   <p class="subtitle">Enter your budget and preferences below, and let EKVS recommend the perfect meal for your group.</p>
 </header>
@@ -1227,8 +1228,16 @@ function $all(sel){ return document.querySelectorAll(sel); }
 // Retro Synth Audio FX utility (Synthesized Audio Context)
 const AudioFX = {
   ctx: null,
+  muted: localStorage.getItem("ekvs_sound_muted") === "true",
+
+  toggleMute() {
+    this.muted = !this.muted;
+    localStorage.setItem("ekvs_sound_muted", this.muted ? "true" : "false");
+    return this.muted;
+  },
   
   init() {
+    if (this.muted) return;
     try {
       if (!this.ctx) {
         this.ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1240,6 +1249,7 @@ const AudioFX = {
   },
 
   tick() {
+    if (this.muted) return;
     try {
       this.init();
       if (!this.ctx) return;
@@ -1262,6 +1272,7 @@ const AudioFX = {
   },
 
   success() {
+    if (this.muted) return;
     try {
       this.init();
       if (!this.ctx) return;
@@ -1286,6 +1297,7 @@ const AudioFX = {
   },
 
   click() {
+    if (this.muted) return;
     try {
       this.init();
       if (!this.ctx) return;
@@ -1307,9 +1319,29 @@ const AudioFX = {
   }
 };
 
+function updateSoundToggleBadge() {
+  const btn = $("#sound-toggle-btn");
+  if (!btn) return;
+  if (AudioFX.muted) {
+    btn.textContent = "🔇 Sound: OFF";
+    btn.style.background = "#888";
+    btn.style.color = "#fff";
+  } else {
+    btn.textContent = "🔊 Sound: ON";
+    btn.style.background = "var(--gold)";
+    btn.style.color = "#000";
+  }
+}
+
 // Play audio feedback globally on Neobrutalist buttons/links/toggles clicks
 document.addEventListener("click", (e) => {
   const t = e.target;
+  if (t.id === "sound-toggle-btn" || t.closest("#sound-toggle-btn")) {
+    AudioFX.toggleMute();
+    updateSoundToggleBadge();
+    if (!AudioFX.muted) AudioFX.tick();
+    return;
+  }
   if (t.tagName === "BUTTON" || t.closest("button") || t.tagName === "A" || t.classList.contains("radio-option") || t.closest(".radio-option")) {
     AudioFX.click();
   }
@@ -3490,6 +3522,10 @@ function renderPollVotingState(poll){
       <h2 style="font-family:'Luckiest Guy', cursive; font-size: 34px; margin: 10px 0; color: #1a0630; letter-spacing: 1px;">
         ROOM: ${poll.code}
       </h2>
+      <div style="display: flex; gap: 8px; justify-content: center; margin-bottom: 15px; flex-wrap: wrap;">
+        <button id="btn-copy-poll-code" type="button" class="claim-btn" style="padding: 6px 14px; font-size: 12px; background: var(--gold); color: #000; margin: 0; box-shadow: 0 3px 0 #000;" title="Copy Room Code">📋 COPY CODE</button>
+        <button id="btn-share-poll-link" type="button" class="claim-btn" style="padding: 6px 14px; font-size: 12px; background: #25D366; color: #fff; margin: 0; box-shadow: 0 3px 0 #075e54;" title="Share invite to WhatsApp">💬 INVITE VIA WHATSAPP</button>
+      </div>
       <div style="font-size: 13px; font-weight: 700; opacity: 0.7; margin-bottom: 20px;">
         👤 Voting as: <strong style="color: var(--deep-purple-2);">${who}</strong>
       </div>
@@ -3755,6 +3791,30 @@ function renderPollVotingState(poll){
           btn.disabled = false;
         }
       });
+    });
+  }
+
+  // Wire up poll copy & invite buttons
+  const copyBtn = $("#btn-copy-poll-code");
+  if (copyBtn) {
+    copyBtn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(poll.code);
+        const orig = copyBtn.textContent;
+        copyBtn.textContent = "✅ COPIED!";
+        AudioFX.tick();
+        setTimeout(() => { copyBtn.textContent = orig; }, 1500);
+      } catch (err) {
+        Modal.alert(`Room Code: ${poll.code}`, "Room Code");
+      }
+    });
+  }
+
+  const shareBtn = $("#btn-share-poll-link");
+  if (shareBtn) {
+    shareBtn.addEventListener("click", () => {
+      const inviteMsg = `🗳️ Vote on where we eat! Join my EKVS Food Poll (Room Code: ${poll.code}) at ${window.location.href}`;
+      window.open(`https://wa.me/?text=${encodeURIComponent(inviteMsg)}`, "_blank");
     });
   }
 
@@ -5235,6 +5295,7 @@ if ($("#ledger-btn-close")) $("#ledger-btn-close").addEventListener("click", () 
 });
 
 // Initialize on page load
+updateSoundToggleBadge();
 initWeather();
 updateTimeSlotBadge();
 initVoiceSearch();
