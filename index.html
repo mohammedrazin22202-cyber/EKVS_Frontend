@@ -412,6 +412,22 @@
     transform: translateY(2px);
     box-shadow: 0 0.5px 0 #000 !important;
   }
+
+  /* ---------- Contingency Protocol & Search UI ---------- */
+  .search-result-item {
+    transition: background 0.15s ease;
+  }
+  .search-result-item:hover {
+    background: rgba(255, 212, 71, 0.25) !important;
+  }
+  @keyframes hazard-pulse {
+    0% { box-shadow: 0 0 25px rgba(232, 17, 45, 0.7), 0 0 50px rgba(255, 212, 71, 0.3), 0 8px 0 #000; }
+    50% { box-shadow: 0 0 45px rgba(232, 17, 45, 0.95), 0 0 80px rgba(255, 46, 159, 0.5), 0 8px 0 #000; }
+    100% { box-shadow: 0 0 25px rgba(232, 17, 45, 0.7), 0 0 50px rgba(255, 212, 71, 0.3), 0 8px 0 #000; }
+  }
+  .contingency-card {
+    animation: hazard-pulse 2s infinite ease-in-out;
+  }
 </style>
 </head>
 <body>
