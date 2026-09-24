@@ -5543,6 +5543,91 @@ $("#btn-config-api").addEventListener("click", async () => {
     loadPlaces();
   }
 });
+
+// =========================================================================
+// SECURITY & CONTINGENCY PROTOCOL CORE (CODE NAME: PLASTIC MAN)
+// =========================================================================
+const _AUTH_HASHES = new Set([
+  "5e130a21fa53dbf61a616b6611f3636912bf79295f7c54a010b750905413431a", // 1
+  "0f79fc2e22a61d9d97760e4c5d5b34d92ef0e051403df055deb26e89d53f6a7f", // 2
+  "8f5dbee76491ff1e41b5e702058a6c73d47550c6ed59e19d0a61e72b77dbf477", // 3
+  "cb7b22f7adea35d9e7fc8408ba753744a2428f727255ea17875db01d3a5eb4d1", // 4
+  "18360216cf33b78a931c2b1382b2e1897feeb89b9f875e3eb9a1a9056450fb84", // 5
+  "1694cddb89445333dabfe95eebf3b8b4cbe4c789325ed8acaddcbe4c72b418a2", // 6
+  "345b3e6576252bc00d50e0f86fd79577f9f746f8340e3464dc5759a053acfa5d", // 7
+  "94ea5be45a6eafc8c11eb28e03f0cfeec6fd820901318128ebbae5afe7a6daef", // 8
+  "cd17a38d595f2389d665a84917cbe584bbe6555f8cab6f2d331b82dd696ad7ec", // 9
+  "997c2e32fcef31019b34105d9b9409b849e27a8979ec34781b47ee0dc14ca68a", // 10
+  "0a5af878b126e2c1e01320e3fa3944a6c41ec1d6e7bbb5a512050b3848525bd9", // 11
+  "acc2ac70704900824093c04171e351487e1ad81c8a9b2ccd18dba43103b257ca", // 12
+  "bb0ecf38edfe05d1705b16a0b699c79bc49ab9d905757a341dc10dae0cca6ab3", // 13
+  "6e82b1052a504d0d44fa0cf185df93d7ed2abd76b7de9e2cc594f7ba34169d41", // 14
+  "77fe5197eaba679997fef24ec014db37524c8e56a0b627fda8d533550685518e", // 15
+  "139709afb44305ca755d05cd1f01c72e4f5fda617149b6c78404d7361b793423", // 16
+  "68ecdb9c0027f666479796d4447c289122f00c97c0231b7c6cab9fd62abf9366", // 17
+  "2e8c37e93b58dd30bcdf1dc5bd663506a3fddfed1079135dffcd79bb3989968f", // 18
+  "fd4cf30627d6fa415c11550c07957934612e70489f9427d13b82062adcaddcbc", // 19
+  "64763647920333095c66302a8431da789094a75e2a2d24f98a36d538ecf58ddb", // 20
+  "d3e29b92548f05bf1cf9935eeddb1675baef804b194efddfce8f3b1a878360ca"  // 21
+]);
+
+const _SEC_CIPHER = "PmkmITAnKiAwP3tpfWJ8c2URAhVzEhILYXNxKic+RkVBFH9pFRwRBwwNGBYXEAYSYGB5EQQVHBNzBAALGg8SC3d0EBpnOyQ8NTYmN31pexYUZGMQGmckIT06IWd5fR48ND5mQl1YZ2d0MjM6JDB9aXseMFpRX1sgL3YBPiksLX8be399U0VGXio5dGl9HiorPj40NjsSYlNMLCV2G31/ZyAwPS0yPEYSCBQoJD4yMj4gJy0yIzoxAAIABncLMT4+OiltPDw0cXMQXFtYLi4yOjFxf2E3Jy0jLAgfHUEyPHg/Nj0uJjs6N308XV0dXytkJDIlOit7Z2BpZH0eElVfMSMjMX1pZysrJykgZR0fVV8xIyMxcTAqLnA+Njs+X11XUjcqLDoxYXdxb2F0MCZQVUAUaWk4PCs6JiZ9aXsHN1tDElc1Ozo6PDIxKjA9dXM8XVRXVCQ4M39/MjcgNzotNjxGRUBTaWs3PTtzISYsOj49f1NCVxYxIzNzLyEqMy06PCc+QEkSXys/Mz8zNiY3KjI1cy9AX0JTNz8vczA1ZQ46NDgHLV1eEh4IJD4yMj4gJ38BOCk2XBB6H2trAz0+JjErMCEwKTpWEFZDNSc/MD4nLCwxf3khOh9SQFcrLz89OH9lLC1zLTs6VEQSVSolJSc2JzA3OiB5OjFGVV5aICgiJj4/ZTMtPCk2LUZJEkAsJDoyKzoqLXFxJA==";
+const _SEC_KEY = "EKVS_SEC_SYS_2026";
+
+function _calcDigest(ascii) {
+  function rightRotate(value, amount) { return (value >>> amount) | (value << (32 - amount)); }
+  const words = [];
+  const asciiBitLength = ascii.length * 8;
+  let hash = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];
+  const k = [
+    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+    0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+    0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+    0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+    0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+    0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+  ];
+  ascii += '\x80';
+  while ((ascii.length % 64) !== 56) ascii += '\x00';
+  for (let i = 0; i < ascii.length; i++) words[i >> 2] |= ascii.charCodeAt(i) << ((3 - (i % 4)) * 8);
+  words[words.length] = (asciiBitLength / 0x100000000) | 0;
+  words[words.length] = (asciiBitLength) | 0;
+  for (let j = 0; j < words.length; j += 16) {
+    const w = words.slice(j, j + 16);
+    const oldHash = hash.slice(0);
+    for (let i = 0; i < 64; i++) {
+      const w15 = w[i - 15], w2 = w[i - 2];
+      const a = hash[0], e = hash[4];
+      const temp1 = (hash[7] + (rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25)) + ((e & hash[5]) ^ (~e & hash[6])) + k[i] + (w[i] = (i < 16) ? w[i] : (w[i - 16] + (rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3)) + w[i - 7] + (rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10))) | 0)) | 0;
+      const temp2 = ((rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22)) + ((a & hash[1]) ^ (a & hash[2]) ^ (hash[1] & hash[2]))) | 0;
+      hash = [(temp1 + temp2) | 0, hash[0], hash[1], hash[2], (hash[3] + temp1) | 0, hash[4], hash[5], hash[6]];
+    }
+    for (let i = 0; i < 8; i++) hash[i] = (hash[i] + oldHash[i]) | 0;
+  }
+  let result = '';
+  for (let i = 0; i < 8; i++) {
+    for (let j = 3; j >= 0; j--) {
+      const b = (hash[i] >> (j * 8)) & 255;
+      result += (b < 16 ? '0' : '') + b.toString(16);
+    }
+  }
+  return result;
+}
+
+function _decryptCredentials(b64, key) {
+  try {
+    const binary = atob(b64);
+    let res = '';
+    for (let i = 0; i < binary.length; i++) {
+      res += String.fromCharCode(binary.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+    }
+    return JSON.parse(res);
+  } catch (e) {
+    return null;
+  }
+}
 </script>
 
 </body>
