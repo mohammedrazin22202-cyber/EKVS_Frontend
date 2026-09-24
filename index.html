@@ -510,6 +510,13 @@
   <!-- ================= CLAIM TAB ================= -->
   <section class="panel active" id="tab-claim">
     <div class="ticket">
+      <!-- Search Bar 2: Decide Meal Tab & Secret Command Bar -->
+      <label>🔍 Quick Meal Search / Secret Code</label>
+      <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+        <input type="text" id="claim-search-input" placeholder="Search dish, preference, or enter code..." style="flex: 1; background: #fff; color: #1a0630; border: 2.5px solid #000; border-radius: 8px; padding: 7px 12px; font-weight: 700; font-family: 'Baloo 2', sans-serif; font-size: 14px;" autocomplete="off" />
+        <button type="button" id="btn-claim-search" style="background: var(--gold); color: #000; border: 2.5px solid #000; border-radius: 8px; padding: 6px 14px; font-weight: 800; cursor: pointer; font-family: 'Baloo 2', sans-serif; font-size: 13px; box-shadow: 0 2.5px 0 #000;">SEARCH</button>
+      </div>
+
       <label>💰 Total Budget (for the group)</label>
       <input type="number" id="in-budget" placeholder="e.g. 500" min="1" />
 
@@ -662,6 +669,15 @@
       </div>
 
       <button class="big-cta" id="btn-add-place" style="font-size:16px; margin-top:14px;">ADD PLACE + MENU</button>
+    </div>
+
+    <!-- Search Bar 3: Menu Inventory Tab & Secret Command Bar -->
+    <div style="margin: 20px 0 12px;">
+      <label style="display:block; font-weight:800; font-size:14px; color:var(--cream); margin-bottom:6px;">🔍 Filter Places & Dishes / Enter Secret Code:</label>
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="manage-search-input" placeholder="Filter by restaurant name, dish, tag, or author code..." style="flex:1; background:#fff; color:#1a0630; border:3px solid #000; border-radius:10px; padding:8px 12px; font-weight:700; font-family:'Baloo 2', sans-serif; font-size:14px; box-shadow:0 3px 0 #000;" autocomplete="off" />
+        <button type="button" id="btn-manage-search-clear" style="display:none; background:var(--prize-red); color:#fff; border:2.5px solid #000; border-radius:8px; padding:6px 12px; font-weight:800; cursor:pointer; font-family:'Baloo 2', sans-serif;">CLEAR</button>
+      </div>
     </div>
 
     <div id="places-list"></div>
@@ -3000,28 +3016,18 @@ function populateAreas(){
   }
 }
 
-async function loadPlaces(){
-  try {
-    const r = await fetch(API+"/api/places");
-    const pData = r.ok ? await r.json() : [];
-    placesCache = Array.isArray(pData) ? pData : [];
-    const itemsR = await fetch(API+"/api/items");
-    const iData = itemsR.ok ? await itemsR.json() : [];
-    const allItems = Array.isArray(iData) ? iData : [];
-    itemsCache = allItems;
-
-    populateAreas();
-
-    if(placesCache.length === 0){
-      $("#places-list").innerHTML = `<div class="empty">No places yet — add your first one above! 🎉</div>`;
-      return;
-    }
+function renderPlacesInventory(listToRender = placesCache, autoExpand = false) {
+  if (!$("#places-list")) return;
+  if (!listToRender || listToRender.length === 0) {
+    $("#places-list").innerHTML = `<div class="empty">No matching places or dishes found. 🔍</div>`;
+    return;
+  }
 
   const roleLabels = { main: "🍱 Main", snack: "🍟 Snack", side: "🥗 Side", dessert: "🍨 Dessert", beverage: "🥤 Drink" };
 
-  $("#places-list").innerHTML = placesCache.map(p=>{
-    const items = allItems.filter(it=>it.place_id === p.id);
-    const isExpanded = expandedPlaces.has(p.id);
+  $("#places-list").innerHTML = listToRender.map(p => {
+    const items = (itemsCache || []).filter(it => it.place_id === p.id);
+    const isExpanded = autoExpand || expandedPlaces.has(p.id);
     return `
     <div class="place-block" data-place-id="${p.id}">
       <div class="place-header" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
@@ -3036,7 +3042,7 @@ async function loadPlaces(){
         <div class="items-container">
           ${items.map(it=>{
             const roleBadge = `<span style="font-size:10px; background:rgba(255,212,71,0.2); color:var(--gold); border-radius:4px; padding:2px 5px; font-weight:800; margin-left:4px;">${roleLabels[it.meal_role || 'main'] || '🍱 Main'}</span>`;
-            const pairedItem = it.paired_item_id ? allItems.find(x => x.id === it.paired_item_id) : null;
+            const pairedItem = it.paired_item_id ? (itemsCache || []).find(x => x.id === it.paired_item_id) : null;
             const pairedBadge = pairedItem ? `<span style="font-size:10px; background:rgba(255,46,159,0.2); color:var(--hot-pink); border-radius:4px; padding:2px 5px; font-weight:800; margin-left:4px;" title="Mandatory paired item">🔗 +${pairedItem.name}</span>` : "";
             return `
             <div class="item-row" data-item-id="${it.id}">
@@ -3153,7 +3159,7 @@ async function loadPlaces(){
       row.querySelectorAll(".star").forEach(star=>{
         star.addEventListener("click", async (e)=>{
           e.stopPropagation();
-          const item = itemsCache.find(it => it.id === itemId);
+          const item = (itemsCache || []).find(it => it.id === itemId);
           const currentRating = item ? (item.rating || 0) : 0;
           const ratingValue = parseInt(star.dataset.value);
           const newRating = (currentRating === ratingValue && ratingValue === 1) ? 0 : ratingValue;
@@ -3167,10 +3173,10 @@ async function loadPlaces(){
 
       row.querySelector(".edit-item-btn").addEventListener("click", async (e)=>{
         e.stopPropagation();
-        const item = itemsCache.find(it => it.id === itemId);
+        const item = (itemsCache || []).find(it => it.id === itemId);
         if(!item) return;
 
-        const placeItems = itemsCache.filter(it => it.place_id === item.place_id);
+        const placeItems = (itemsCache || []).filter(it => it.place_id === item.place_id);
         const updated = await EditItemModal.show(item, placeItems);
         if(!updated) return;
 
@@ -3188,6 +3194,26 @@ async function loadPlaces(){
       });
     });
   });
+}
+
+async function loadPlaces(){
+  try {
+    const r = await fetch(API+"/api/places");
+    const pData = r.ok ? await r.json() : [];
+    placesCache = Array.isArray(pData) ? pData : [];
+    const itemsR = await fetch(API+"/api/items");
+    const iData = itemsR.ok ? await itemsR.json() : [];
+    const allItems = Array.isArray(iData) ? iData : [];
+    itemsCache = allItems;
+
+    populateAreas();
+
+    if(placesCache.length === 0){
+      $("#places-list").innerHTML = `<div class="empty">No places yet — add your first one above! 🎉</div>`;
+      return;
+    }
+
+    renderPlacesInventory(placesCache);
   } catch (err) {
     console.error("Failed to load places:", err);
     placesCache = [];
