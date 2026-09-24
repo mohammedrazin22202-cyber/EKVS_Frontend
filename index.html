@@ -448,6 +448,16 @@
   <p class="subtitle">Enter your budget and preferences below, and let EKVS recommend the perfect meal for your group.</p>
 </header>
 
+<!-- Search Bar 1: Global Search & Secret Command Bar -->
+<div class="global-search-wrap" style="max-width: 600px; margin: 15px auto 0; padding: 0 16px; position: relative;">
+  <div style="display: flex; gap: 8px; align-items: center; background: #fff; border: 3px solid #000; border-radius: 12px; padding: 4px 6px 4px 12px; box-shadow: 0 4px 0 #000;">
+    <span style="font-size: 16px; user-select: none;">🔍</span>
+    <input type="text" id="global-search-input" placeholder="Search dishes, places, or enter secret code..." style="flex: 1; border: none; outline: none; font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 14px; color: #1a0630; background: transparent; padding: 6px 0;" autocomplete="off" />
+    <button id="btn-global-search" type="button" style="background: var(--gold); color: #000; border: 2px solid #000; border-radius: 8px; padding: 6px 14px; font-weight: 800; cursor: pointer; font-family: 'Baloo 2', sans-serif; font-size: 13px; box-shadow: 0 2px 0 #000;">SEARCH</button>
+  </div>
+  <div id="global-search-results" style="display: none; position: absolute; top: calc(100% + 4px); left: 16px; right: 16px; background: var(--cream); border: 3px solid #000; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.5); max-height: 280px; overflow-y: auto; z-index: 1500; padding: 8px;"></div>
+</div>
+
 <div class="profile-container" style="max-width: 600px; margin: 15px auto 0; padding: 0 16px; display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 8px;">
   <span style="font-weight: 800; font-size: 13px; color: var(--gold); margin-right: 8px;">👤 Active Profile:</span>
   <select id="profile-select" style="
