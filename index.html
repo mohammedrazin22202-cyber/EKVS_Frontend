@@ -1241,6 +1241,159 @@
   </div>
 </div>
 
+<!-- ================= CONTINGENCY PROTOCOL MODAL ================= -->
+<div id="contingency-protocol-modal" class="modal-backdrop" style="
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(10, 2, 20, 0.94);
+  backdrop-filter: blur(8px);
+  z-index: 999999;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  overflow-y: auto;
+">
+  <div class="contingency-card" style="
+    max-width: 540px;
+    width: 100%;
+    background: #14052b;
+    border: 4px solid var(--prize-red);
+    border-radius: 20px;
+    padding: 24px;
+    color: var(--cream);
+    font-family: 'Baloo 2', sans-serif;
+    position: relative;
+    box-sizing: border-box;
+  ">
+    <!-- Top Alert Banner -->
+    <div style="text-align: center; margin-bottom: 16px;">
+      <div style="
+        display: inline-block;
+        background: linear-gradient(90deg, #E8112D, #FF2E9F, #E8112D);
+        color: #fff;
+        font-weight: 800;
+        font-size: 13px;
+        padding: 5px 16px;
+        border-radius: 999px;
+        letter-spacing: 1.5px;
+        box-shadow: 0 0 14px #E8112D;
+        text-transform: uppercase;
+      ">🚨 Contingency Protocol Activated 🚨</div>
+      <h2 class="display" id="cp-protocol-title" style="
+        margin: 10px 0 2px;
+        font-size: 28px;
+        color: var(--gold);
+        -webkit-text-stroke: 1.5px #000;
+        text-shadow: 0 3px 0 rgba(0,0,0,0.5);
+        letter-spacing: 1px;
+      ">CODE NAME: PLASTIC MAN</h2>
+      <div style="
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--win-green);
+        letter-spacing: 0.5px;
+      ">🛡️ OFFICIAL PROOF OF ORIGINAL OWNERSHIP & INTELLECTUAL PROPERTY</div>
+    </div>
+
+    <!-- Verification Badge Box -->
+    <div style="
+      background: rgba(23, 217, 122, 0.12);
+      border: 2px solid var(--win-green);
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    ">
+      <span style="font-size: 26px;">✅</span>
+      <div>
+        <div style="font-weight: 800; font-size: 14px; color: var(--win-green);">AUTHOR IDENTITY AUTHENTICATED</div>
+        <div style="font-size: 11px; opacity: 0.85; color: #fff;">Cryptographic author clearance verified via Authorized Secret Hash match.</div>
+      </div>
+    </div>
+
+    <!-- Credentials Card -->
+    <div style="
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(255, 212, 71, 0.35);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 18px;
+      font-size: 14px;
+    ">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; border-bottom: 1px dashed rgba(255,255,255,0.15); padding-bottom: 6px;">
+        <span style="color: var(--gold); font-weight: 800;">Real Project Name:</span>
+        <span style="font-weight: 800; font-size: 16px; color: #fff;" id="cp-project-name">EKVS</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; border-bottom: 1px dashed rgba(255,255,255,0.15); padding-bottom: 6px;">
+        <span style="color: var(--gold); font-weight: 800;">Real Owner Name:</span>
+        <span style="font-weight: 800; font-size: 16px; color: #fff;" id="cp-owner-name">MegaTron <span style="font-size: 12px; color: var(--gold-dark);">(alias Mohammed Razin H)</span></span>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; border-bottom: 1px dashed rgba(255,255,255,0.15); padding-bottom: 6px;">
+        <span style="color: var(--gold); font-weight: 800;">Author / Creator:</span>
+        <span style="font-weight: 800; font-size: 15px; color: #fff;" id="cp-author-name">Mohammed Razin H</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; border-bottom: 1px dashed rgba(255,255,255,0.15); padding-bottom: 6px;">
+        <span style="color: var(--gold); font-weight: 800;">Official Contact:</span>
+        <a id="cp-contact-link" href="mailto:mohammedrazin22202@gmail.com" style="color: #00d2ff; text-decoration: underline; font-weight: 700; font-size: 13px;">mohammedrazin22202@gmail.com</a>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; border-bottom: 1px dashed rgba(255,255,255,0.15); padding-bottom: 6px;">
+        <span style="color: var(--gold); font-weight: 800;">LinkedIn:</span>
+        <a id="cp-linkedin-link" href="https://www.linkedin.com/in/razin88307" target="_blank" rel="noopener noreferrer" style="color: #00d2ff; text-decoration: underline; font-weight: 700; font-size: 13px;">linkedin.com/in/razin88307 ↗</a>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: baseline;">
+        <span style="color: var(--gold); font-weight: 800;">GitHub:</span>
+        <a id="cp-github-link" href="https://github.com/mohammedrazin22202-cyber" target="_blank" rel="noopener noreferrer" style="color: #00d2ff; text-decoration: underline; font-weight: 700; font-size: 13px;">github.com/mohammedrazin22202-cyber ↗</a>
+      </div>
+    </div>
+
+    <!-- Legal & Security Statement -->
+    <div id="cp-notice-text" style="
+      background: rgba(232, 17, 45, 0.12);
+      border-left: 4px solid var(--prize-red);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      line-height: 1.4;
+      color: #ffc4cb;
+      margin-bottom: 18px;
+    ">
+      ⚠️ <b>LEGAL DECLARATION:</b> This software, user interface design, backend logic, and proprietary code are the exclusive intellectual property of <b>MegaTron (Mohammed Razin H)</b>. Unauthorized replication, redistribution, or alteration is legally actionable.
+    </div>
+
+    <!-- Action Buttons -->
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <button id="btn-cp-copy" type="button" style="
+        flex: 1.5;
+        background: var(--gold);
+        color: #000;
+        border: 2.5px solid #000;
+        border-radius: 12px;
+        padding: 10px 14px;
+        font-weight: 800;
+        cursor: pointer;
+        font-family: 'Baloo 2', sans-serif;
+        font-size: 14px;
+        box-shadow: 0 4px 0 #000;
+      ">📋 COPY VERIFIED PROOF</button>
+      <button id="btn-cp-close" type="button" style="
+        flex: 1;
+        background: rgba(255,255,255,0.15);
+        color: #fff;
+        border: 2.5px solid rgba(255,255,255,0.3);
+        border-radius: 12px;
+        padding: 10px 14px;
+        font-weight: 800;
+        cursor: pointer;
+        font-family: 'Baloo 2', sans-serif;
+        font-size: 14px;
+      ">CLOSE</button>
+    </div>
+  </div>
+</div>
+
 
 <div class="status-pill" style="display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
   <span id="status-pill">checking sync...</span>
