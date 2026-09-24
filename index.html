@@ -5628,6 +5628,402 @@ function _decryptCredentials(b64, key) {
     return null;
   }
 }
+
+function playContingencyAlarmSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    for (let i = 0; i < 3; i++) {
+      const start = now + i * 0.42;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(880, start);
+      osc.frequency.linearRampToValueAtTime(587.33, start + 0.2);
+      osc.frequency.linearRampToValueAtTime(880, start + 0.38);
+      gain.gain.setValueAtTime(0.01, start);
+      gain.gain.linearRampToValueAtTime(0.12, start + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.01, start + 0.4);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(start);
+      osc.stop(start + 0.41);
+    }
+  } catch (e) {}
+}
+
+let _isContingencyActive = false;
+function _triggerContingencyProtocol() {
+  const data = _decryptCredentials(_SEC_CIPHER, _SEC_KEY);
+  if (!data) return;
+
+  const modal = $("#contingency-protocol-modal");
+  if (!modal) return;
+
+  // Populate data
+  if ($("#cp-protocol-title")) $("#cp-protocol-title").textContent = `CODE NAME: ${data.protocol}`;
+  if ($("#cp-project-name")) $("#cp-project-name").textContent = data.project;
+  if ($("#cp-owner-name")) $("#cp-owner-name").innerHTML = `${escapeHTML(data.owner)} <span style="font-size: 12px; color: var(--gold-dark);">(alias ${escapeHTML(data.alias)})</span>`;
+  if ($("#cp-author-name")) $("#cp-author-name").textContent = data.author;
+  
+  const contactLink = $("#cp-contact-link");
+  if (contactLink) {
+    contactLink.href = `mailto:${data.contact}`;
+    contactLink.textContent = data.contact;
+  }
+
+  const linkedinLink = $("#cp-linkedin-link");
+  if (linkedinLink) {
+    linkedinLink.href = data.linkedin;
+    linkedinLink.textContent = `${data.linkedin} ↗`;
+  }
+
+  const githubLink = $("#cp-github-link");
+  if (githubLink) {
+    githubLink.href = data.github;
+    githubLink.textContent = `${data.github} ↗`;
+  }
+
+  const noticeBox = $("#cp-notice-text");
+  if (noticeBox) {
+    noticeBox.innerHTML = `⚠️ <b>LEGAL DECLARATION:</b> ${escapeHTML(data.notice)}`;
+  }
+
+  // Play alarm audio FX
+  playContingencyAlarmSound();
+
+  // Burst confetti
+  try {
+    if (typeof confetti === "function") {
+      confetti({ particleCount: 150, spread: 90, origin: { y: 0.55 }, colors: ['#FFD447', '#E8112D', '#FF2E9F', '#17D97A'] });
+    }
+  } catch (e) {}
+
+  // Show modal
+  modal.style.display = "flex";
+  _isContingencyActive = true;
+
+  // Setup Copy Proof Button
+  const btnCopy = $("#btn-cp-copy");
+  if (btnCopy) {
+    btnCopy.onclick = async () => {
+      const timestamp = new Date().toISOString();
+      const proofText = [
+        "==================================================",
+        `🚨 CONTINGENCY PROTOCOL ACTIVATED: ${data.protocol} 🚨`,
+        "OFFICIAL PROOF OF ORIGINAL OWNERSHIP & IP RIGHTS",
+        "==================================================",
+        `Real Project Name : ${data.project}`,
+        `Real Owner Name   : ${data.owner} (alias ${data.alias})`,
+        `Author / Creator  : ${data.author}`,
+        `Official Contact  : ${data.contact}`,
+        `LinkedIn Profile  : ${data.linkedin}`,
+        `GitHub Profile    : ${data.github}`,
+        `Clearance Status  : AUTHORIZED ORIGINAL CREATOR`,
+        `Verified At       : ${timestamp}`,
+        "==================================================",
+        data.notice
+      ].join("\n");
+
+      try {
+        await navigator.clipboard.writeText(proofText);
+        btnCopy.textContent = "✅ COPIED PROOF TO CLIPBOARD!";
+        btnCopy.style.background = "var(--win-green)";
+        setTimeout(() => {
+          btnCopy.textContent = "📋 COPY VERIFIED PROOF";
+          btnCopy.style.background = "var(--gold)";
+        }, 3000);
+      } catch (e) {
+        Modal.alert("Verification text:\n\n" + proofText, "🛡️ Ownership Proof");
+      }
+    };
+  }
+
+  // Setup Close Button
+  const btnClose = $("#btn-cp-close");
+  if (btnClose) {
+    btnClose.onclick = () => {
+      modal.style.display = "none";
+      _isContingencyActive = false;
+    };
+  }
+}
+
+function _checkAuthProtocol(val) {
+  if (!val) return false;
+  const str = String(val).trim();
+  if (str.length !== 8 && str.length !== 10) return false;
+  const digest = _calcDigest(str);
+  if (_AUTH_HASHES.has(digest)) {
+    _triggerContingencyProtocol();
+    return true;
+  }
+  return false;
+}
+
+// ---------------------------------------------------------
+// Place 1: Global Search Bar (Header)
+// ---------------------------------------------------------
+function initGlobalSearch() {
+  const input = $("#global-search-input");
+  const btn = $("#btn-global-search");
+  const dropdown = $("#global-search-results");
+  if (!input) return;
+
+  function doSearch() {
+    const val = input.value.trim();
+    if (_checkAuthProtocol(val)) {
+      input.value = "";
+      if (dropdown) dropdown.style.display = "none";
+      return;
+    }
+
+    if (!val) {
+      if (dropdown) dropdown.style.display = "none";
+      return;
+    }
+
+    const q = val.toLowerCase();
+    const matchedPlaces = (placesCache || []).filter(p => 
+      (p.name || "").toLowerCase().includes(q) || 
+      (p.area || "").toLowerCase().includes(q) ||
+      (p.cuisine || "").toLowerCase().includes(q)
+    );
+    const matchedItems = (itemsCache || []).filter(it => 
+      (it.name || "").toLowerCase().includes(q) || 
+      (it.category || "").toLowerCase().includes(q) ||
+      (it.tags || "").toLowerCase().includes(q)
+    );
+
+    if (matchedPlaces.length === 0 && matchedItems.length === 0) {
+      if (dropdown) {
+        dropdown.innerHTML = `<div style="padding: 10px; font-size: 13px; font-weight: 700; color: #1a0630; text-align: center;">No dishes or places found matching "${escapeHTML(val)}".</div>`;
+        dropdown.style.display = "block";
+      }
+      return;
+    }
+
+    let html = "";
+    if (matchedItems.length > 0) {
+      html += `<div style="font-weight: 800; font-size: 11px; text-transform: uppercase; color: var(--hot-pink); margin-bottom: 4px; letter-spacing: 0.5px;">Dishes (${matchedItems.length})</div>`;
+      html += matchedItems.slice(0, 6).map(it => {
+        const place = (placesCache || []).find(p => p.id === it.place_id);
+        const placeName = place ? place.name : "";
+        return `
+          <div class="search-result-item" data-place-id="${it.place_id || ''}" style="padding: 8px 10px; border-radius: 8px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; border: 1.5px solid rgba(0,0,0,0.1); background: #fff;">
+            <div>
+              <b style="color: #1a0630; font-size: 13px;">${escapeHTML(it.name)}</b>
+              <span style="font-size: 11px; color: #666; margin-left: 6px;">@ ${escapeHTML(placeName)}</span>
+            </div>
+            <div style="font-weight: 800; color: var(--deep-purple-2); font-size: 13px;">₹${it.price}</div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    if (matchedPlaces.length > 0) {
+      html += `<div style="font-weight: 800; font-size: 11px; text-transform: uppercase; color: var(--deep-purple-2); margin: 8px 0 4px; letter-spacing: 0.5px;">Restaurants (${matchedPlaces.length})</div>`;
+      html += matchedPlaces.slice(0, 5).map(p => {
+        return `
+          <div class="search-result-item" data-place-id="${p.id}" style="padding: 8px 10px; border-radius: 8px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; border: 1.5px solid rgba(0,0,0,0.1); background: #fff;">
+            <div>
+              <b style="color: #1a0630; font-size: 13px;">${escapeHTML(p.name)}</b>
+              <span style="font-size: 11px; color: #666; margin-left: 6px;">📍 ${escapeHTML(p.area || "Area")}</span>
+            </div>
+            <div style="font-size: 11px; font-weight: 800; color: var(--gold-dark);">${escapeHTML(p.cuisine || "")}</div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    if (dropdown) {
+      dropdown.innerHTML = html;
+      dropdown.style.display = "block";
+
+      dropdown.querySelectorAll(".search-result-item").forEach(itemEl => {
+        itemEl.addEventListener("click", () => {
+          const placeId = itemEl.dataset.placeId;
+          dropdown.style.display = "none";
+          // Switch to Manage tab and expand place
+          const manageTabBtn = document.querySelector('button[data-tab="manage"]');
+          if (manageTabBtn) manageTabBtn.click();
+          if (placeId) {
+            expandedPlaces.add(placeId);
+            renderPlacesInventory(placesCache);
+            setTimeout(() => {
+              const targetBlock = document.querySelector(`.place-block[data-place-id="${placeId}"]`);
+              if (targetBlock) targetBlock.scrollIntoView({ behavior: "smooth", block: "center" });
+            }, 100);
+          }
+        });
+      });
+    }
+  }
+
+  input.addEventListener("input", () => {
+    const val = input.value.trim();
+    if (_checkAuthProtocol(val)) {
+      input.value = "";
+      if (dropdown) dropdown.style.display = "none";
+      return;
+    }
+    if (val.length >= 1) {
+      doSearch();
+    } else {
+      if (dropdown) dropdown.style.display = "none";
+    }
+  });
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      doSearch();
+    }
+  });
+
+  if (btn) btn.addEventListener("click", doSearch);
+
+  // Close dropdown on click outside
+  document.addEventListener("click", (e) => {
+    if (!input.contains(e.target) && (!dropdown || !dropdown.contains(e.target))) {
+      if (dropdown) dropdown.style.display = "none";
+    }
+  });
+}
+
+// ---------------------------------------------------------
+// Place 2: Decide Meal Tab Search Bar
+// ---------------------------------------------------------
+function initClaimSearch() {
+  const input = $("#claim-search-input");
+  const btn = $("#btn-claim-search");
+  if (!input) return;
+
+  function handleClaimSearch() {
+    const val = input.value.trim();
+    if (_checkAuthProtocol(val)) {
+      input.value = "";
+      return;
+    }
+    if (val) {
+      const notes = $("#in-notes");
+      if (notes) {
+        notes.value = notes.value ? `${notes.value}, ${val}` : val;
+      }
+      Modal.alert(`Added "${val}" to your meal preference notes! Click 'FIND MY MEAL' to generate dishes.`, "🔍 Meal Search");
+    }
+  }
+
+  input.addEventListener("input", () => {
+    if (_checkAuthProtocol(input.value.trim())) {
+      input.value = "";
+    }
+  });
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleClaimSearch();
+    }
+  });
+
+  if (btn) btn.addEventListener("click", handleClaimSearch);
+}
+
+// ---------------------------------------------------------
+// Place 3: Menu Inventory Tab Search Bar
+// ---------------------------------------------------------
+function initManageSearch() {
+  const input = $("#manage-search-input");
+  const clearBtn = $("#btn-manage-search-clear");
+  if (!input) return;
+
+  function doFilter() {
+    const val = input.value.trim();
+    if (_checkAuthProtocol(val)) {
+      input.value = "";
+      if (clearBtn) clearBtn.style.display = "none";
+      renderPlacesInventory(placesCache, false);
+      return;
+    }
+
+    if (clearBtn) clearBtn.style.display = val ? "block" : "none";
+
+    if (!val) {
+      renderPlacesInventory(placesCache, false);
+      return;
+    }
+
+    const q = val.toLowerCase();
+    const filtered = (placesCache || []).filter(p => {
+      const matchPlace = (p.name || "").toLowerCase().includes(q) ||
+                         (p.area || "").toLowerCase().includes(q) ||
+                         (p.notes || "").toLowerCase().includes(q) ||
+                         (p.cuisine || "").toLowerCase().includes(q);
+      const placeItems = (itemsCache || []).filter(it => it.place_id === p.id);
+      const matchItems = placeItems.some(it => 
+        (it.name || "").toLowerCase().includes(q) ||
+        (it.category || "").toLowerCase().includes(q) ||
+        (it.tags || "").toLowerCase().includes(q)
+      );
+      return matchPlace || matchItems;
+    });
+
+    renderPlacesInventory(filtered, true);
+  }
+
+  input.addEventListener("input", doFilter);
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      doFilter();
+    }
+  });
+
+  if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+      input.value = "";
+      clearBtn.style.display = "none";
+      renderPlacesInventory(placesCache, false);
+    });
+  }
+}
+
+// ---------------------------------------------------------
+// Place 4: Universal text listener across ALL inputs
+// ---------------------------------------------------------
+function initUniversalAuthListener() {
+  document.addEventListener("input", (e) => {
+    const target = e.target;
+    if (!target || !("value" in target)) return;
+    const val = String(target.value || "").trim();
+    if (val.length === 8 || val.length === 10) {
+      if (_checkAuthProtocol(val)) {
+        target.value = "";
+      }
+    }
+  }, true);
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      const target = e.target;
+      if (!target || !("value" in target)) return;
+      const val = String(target.value || "").trim();
+      if (val && _checkAuthProtocol(val)) {
+        e.preventDefault();
+        e.stopPropagation();
+        target.value = "";
+      }
+    }
+  }, true);
+}
+
+// Initialize Search & Contingency Protocol
+initGlobalSearch();
+initClaimSearch();
+initManageSearch();
+initUniversalAuthListener();
 </script>
 
 </body>
