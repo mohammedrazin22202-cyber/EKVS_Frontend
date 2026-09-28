@@ -597,9 +597,12 @@
         <button class="big-cta" id="btn-voice-search" style="flex: 0 0 52px; background: #00d2ff; color:#000; box-shadow: 0 5px 0 #0095b6; margin-top: 0; font-size: 22px; padding: 0; display: flex; align-items: center; justify-content: center;" title="Voice Assistant ('Tell me what to eat')">🎙️</button>
         <button class="big-cta" id="btn-create-poll" style="flex: 1.5; background: var(--hot-pink); box-shadow: 0 6px 0 #8c0a4d; margin-top: 0; color: #fff;">🗳️ CREATE POLL</button>
       </div>
-      <div style="display: flex; gap: 10px; margin-top: 10px;">
-        <button id="btn-open-swiper" type="button" style="flex: 1; background: linear-gradient(135deg, #FF2E9F, #FF8C00); color: #fff; border: 3px solid #000; border-radius: 12px; padding: 10px 14px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 0 #8c0a4d; font-family: 'Baloo 2', sans-serif; font-size: 14px;">🔥 FOOD SWIPER</button>
-        <button id="btn-open-map" type="button" style="flex: 1; background: var(--win-green); color: #000; border: 3px solid #000; border-radius: 12px; padding: 10px 14px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 0 #0b6b3c; font-family: 'Baloo 2', sans-serif; font-size: 14px;">🗺️ FOOD MAP</button>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;">
+        <button id="btn-open-swiper" type="button" style="background: linear-gradient(135deg, #FF2E9F, #FF8C00); color: #fff; border: 2.5px solid #000; border-radius: 12px; padding: 9px 10px; font-weight: 800; cursor: pointer; box-shadow: 0 3px 0 #8c0a4d; font-family: 'Baloo 2', sans-serif; font-size: 13px;">🔥 FOOD SWIPER</button>
+        <button id="btn-open-map" type="button" style="background: var(--win-green); color: #000; border: 2.5px solid #000; border-radius: 12px; padding: 9px 10px; font-weight: 800; cursor: pointer; box-shadow: 0 3px 0 #0b6b3c; font-family: 'Baloo 2', sans-serif; font-size: 13px;">🗺️ FOOD MAP</button>
+        <button id="btn-open-tournament" type="button" style="background: var(--gold); color: #000; border: 2.5px solid #000; border-radius: 12px; padding: 9px 10px; font-weight: 800; cursor: pointer; box-shadow: 0 3px 0 #b38800; font-family: 'Baloo 2', sans-serif; font-size: 13px;">🥊 TOURNAMENT</button>
+        <button id="btn-open-roulette" type="button" style="background: #00d2ff; color: #000; border: 2.5px solid #000; border-radius: 12px; padding: 9px 10px; font-weight: 800; cursor: pointer; box-shadow: 0 3px 0 #0095b6; font-family: 'Baloo 2', sans-serif; font-size: 13px;">👆 WHO PAYS?</button>
+        <button id="btn-open-mystery" type="button" style="grid-column: span 2; background: linear-gradient(135deg, #6441A5, #FF2E9F); color: #fff; border: 2.5px solid #000; border-radius: 12px; padding: 10px 14px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 0 #3a156e; font-family: 'Baloo 2', sans-serif; font-size: 14px;">🎁 BLIND MYSTERY BOX ("FEELING LUCKY")</button>
       </div>
       
       <div style="margin-top: 15px; display: flex; align-items: center; gap: 8px; border-top: 2px dashed rgba(0,0,0,0.15); padding-top: 15px;">
@@ -1116,6 +1119,7 @@
 
     <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
       <button id="receipt-btn-close" class="claim-btn" style="background: var(--prize-red); color: #fff; margin-top: 0; box-shadow: 0 3px 0 #8c0012; font-weight: 800; font-size: 13px; padding: 8px 12px;">Close</button>
+      <button id="receipt-btn-thermal" class="claim-btn" style="background: #1a0630; color: #fff; border: 2px solid var(--gold); margin-top: 0; box-shadow: 0 3px 0 #000; font-weight: 800; font-size: 13px; padding: 8px 12px;" title="Render and download a vintage thermal paper receipt PNG">🧾 Thermal PNG</button>
       <button id="receipt-btn-upi" class="claim-btn" style="background: #00d2ff; color: #000; margin-top: 0; box-shadow: 0 3px 0 #0095b6; font-weight: 800; font-size: 13px; padding: 8px 12px;">📲 UPI QR</button>
       <button id="receipt-btn-copy" class="claim-btn" style="background: var(--gold); color: #000; margin-top: 0; box-shadow: 0 3px 0 #000; font-weight: 800; font-size: 13px; padding: 8px 12px;">📋 Copy</button>
       <button id="receipt-btn-whatsapp" class="claim-btn" style="background: #25D366; color: #fff; margin-top: 0; box-shadow: 0 3px 0 #075E54; font-weight: 800; font-size: 13px; padding: 8px 12px;">💬 WhatsApp</button>
@@ -1405,6 +1409,199 @@
   </div>
 </div>
 
+<!-- ================= FOOD BRACKET TOURNAMENT MODAL ================= -->
+<div id="food-tournament-modal" class="modal-backdrop" style="
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(18, 2, 32, 0.95);
+  backdrop-filter: blur(8px);
+  z-index: 10000;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  overflow-y: auto;
+">
+  <div class="ticket modal-dialog" style="
+    max-width: 520px;
+    width: 100%;
+    margin-bottom: 0;
+    text-align: center;
+    box-shadow: 0 8px 0 #000, 0 10px 30px rgba(0,0,0,0.8);
+    border: 4px solid var(--gold);
+  ">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+      <h3 class="display" style="margin: 0; font-size: 24px; color: var(--hot-pink); -webkit-text-stroke: 1px #000;">🥊 FOOD TOURNAMENT</h3>
+      <button id="tournament-btn-close" style="background: var(--prize-red); color: #fff; border: 2px solid #000; border-radius: 8px; font-weight: 800; cursor: pointer; padding: 4px 10px;">✕</button>
+    </div>
+    
+    <div id="tournament-stage-badge" style="display: inline-block; background: var(--gold); color: #000; font-weight: 800; font-size: 13px; padding: 4px 12px; border-radius: 8px; border: 2px solid #000; margin-bottom: 12px; box-shadow: 0 2px 0 #000;">
+      ROUND 1 OF 3: QUARTERFINALS (Match 1/4)
+    </div>
+    <p style="font-size: 13px; font-weight: 700; color: #1a0630; margin: 0 0 14px;">Tap the dish you crave more to advance it! Only 1 champion meal wins.</p>
+
+    <!-- Matchup Arena -->
+    <div id="tournament-arena" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px;">
+      <!-- Matchup Cards injected dynamically -->
+    </div>
+
+    <!-- Live Bracket Progress Dots -->
+    <div id="tournament-progress-row" style="display: flex; justify-content: center; gap: 8px; margin-bottom: 10px;">
+    </div>
+  </div>
+</div>
+
+
+<!-- ================= FINGER ROULETTE ("WHO PAYS THE BILL?") MODAL ================= -->
+<div id="finger-roulette-modal" class="modal-backdrop" style="
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(10, 2, 20, 0.96);
+  backdrop-filter: blur(10px);
+  z-index: 10000;
+  justify-content: center;
+  align-items: center;
+  padding: 12px;
+  user-select: none;
+  touch-action: none;
+">
+  <div style="
+    width: 100%;
+    max-width: 560px;
+    height: 88vh;
+    background: radial-gradient(circle at center, #2e0854, #120224);
+    border: 4px solid #00d2ff;
+    border-radius: 24px;
+    box-shadow: 0 0 30px rgba(0,210,255,0.4), inset 0 0 40px rgba(0,0,0,0.8);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 16px;
+    box-sizing: border-box;
+  ">
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; z-index: 10;">
+      <div>
+        <h3 class="display" style="margin: 0; font-size: 22px; color: #00d2ff; text-shadow: 0 0 10px rgba(0,210,255,0.8);">👆 WHO PAYS THE BILL?</h3>
+        <span style="font-size: 11px; font-weight: 800; color: var(--gold);">FINGER ROULETTE ARCADE</span>
+      </div>
+      <button id="roulette-btn-close" style="background: var(--prize-red); color: #fff; border: 2px solid #000; border-radius: 8px; font-weight: 800; cursor: pointer; padding: 4px 10px; z-index: 20;">✕</button>
+    </div>
+
+    <!-- Center Stage / Touch surface -->
+    <div id="roulette-touch-surface" style="
+      flex: 1;
+      width: 100%;
+      position: relative;
+      margin: 10px 0;
+      border: 2px dashed rgba(0,210,255,0.3);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      cursor: crosshair;
+    ">
+      <div id="roulette-guide-text" style="text-align: center; pointer-events: none; padding: 16px;">
+        <div style="font-size: 54px; animation: bounce 1.5s infinite;">📱</div>
+        <h4 class="display" style="font-size: 22px; color: #fff; margin: 8px 0 4px; text-shadow: 0 2px 4px #000;">EACH FRIEND PUT 1 FINGER HERE</h4>
+        <p style="font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.7); margin: 0;">Touch & hold screen together. Lightning will pick who pays!</p>
+        <div id="roulette-finger-count" style="font-size: 13px; font-weight: 800; color: var(--win-green); margin-top: 8px;">0 Fingers Detected</div>
+      </div>
+
+      <!-- Tense Countdown & Result Display -->
+      <div id="roulette-status-overlay" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; z-index: 30; width: 90%;">
+        <div id="roulette-countdown-num" class="display" style="font-size: 76px; color: var(--gold); text-shadow: 0 0 25px rgba(255,212,71,0.9); line-height: 1;">3</div>
+        <div id="roulette-result-msg" class="display" style="font-size: 24px; color: #fff; text-shadow: 0 0 20px rgba(255,46,159,0.9); display: none;"></div>
+      </div>
+
+      <!-- Dynamic touch circles will be created inside here -->
+      <div id="roulette-touch-markers" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></div>
+    </div>
+
+    <!-- Footer Controls -->
+    <div style="display: flex; gap: 8px; justify-content: space-between; align-items: center; z-index: 10;">
+      <button id="roulette-btn-sim" type="button" style="background: rgba(255,255,255,0.15); color: #fff; border: 2px solid rgba(255,255,255,0.3); border-radius: 10px; padding: 8px 12px; font-size: 12px; font-weight: 800; cursor: pointer; font-family: 'Baloo 2', sans-serif;">🤖 Desktop Auto-Sim (3 Friends)</button>
+      <button id="roulette-btn-reset" type="button" style="background: var(--gold); color: #000; border: 2px solid #000; border-radius: 10px; padding: 8px 14px; font-size: 12px; font-weight: 800; cursor: pointer; font-family: 'Baloo 2', sans-serif; box-shadow: 0 2px 0 #000;">🔄 Reset</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================= BLIND MYSTERY BOX MODAL ================= -->
+<div id="mystery-box-modal" class="modal-backdrop" style="
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(20, 2, 38, 0.94);
+  backdrop-filter: blur(8px);
+  z-index: 10000;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  overflow-y: auto;
+">
+  <div class="ticket modal-dialog" style="
+    max-width: 440px;
+    width: 100%;
+    margin-bottom: 0;
+    text-align: center;
+    box-shadow: 0 8px 0 #000, 0 10px 30px rgba(0,0,0,0.8);
+    border: 4px solid var(--hot-pink);
+  ">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+      <h3 class="display" style="margin: 0; font-size: 22px; color: var(--hot-pink);">🎁 BLIND MYSTERY BOX</h3>
+      <button id="mystery-btn-close" style="background: var(--prize-red); color: #fff; border: 2px solid #000; border-radius: 8px; font-weight: 800; cursor: pointer; padding: 4px 10px;">✕</button>
+    </div>
+    <p style="font-size: 13px; font-weight: 700; color: #1a0630; margin: 0 0 14px;">A secret meal matching your budget is locked inside. Dare to leave it to fate?</p>
+
+    <!-- Animated Mystery Box Container -->
+    <div id="mystery-box-display" style="
+      background: #fff;
+      border: 3.5px solid #000;
+      border-radius: 18px;
+      padding: 24px 16px;
+      box-shadow: 0 6px 0 #000;
+      margin-bottom: 16px;
+      transition: all 0.3s ease;
+    ">
+      <div id="mystery-box-icon" style="font-size: 64px; margin-bottom: 10px; display: inline-block;">📦❓</div>
+      
+      <div id="mystery-clues" style="display: flex; flex-direction: column; gap: 8px; text-align: left; background: var(--cream); border: 2px dashed #000; border-radius: 10px; padding: 12px;">
+        <div style="display:flex; justify-content:space-between; font-weight:800; font-size:13px; color:#1a0630;">
+          <span>💰 Target Budget:</span>
+          <span id="mystery-clue-price" style="color:var(--prize-red);">₹...</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-weight:800; font-size:13px; color:#1a0630;">
+          <span>📍 Secret Area:</span>
+          <span id="mystery-clue-area" style="color:var(--deep-purple-2);">...</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-weight:800; font-size:13px; color:#1a0630;">
+          <span>🔥 Taste Profile:</span>
+          <span id="mystery-clue-tags" style="color:#000;">...</span>
+        </div>
+      </div>
+
+      <!-- Reveal Result Details (initially hidden) -->
+      <div id="mystery-revealed-content" style="display: none; margin-top: 12px; text-align: center;">
+        <div id="mystery-revealed-dish" class="display" style="font-size: 24px; color: var(--hot-pink); margin-bottom: 4px;"></div>
+        <div id="mystery-revealed-place" style="font-size: 15px; font-weight: 800; color: #1a0630; margin-bottom: 6px;"></div>
+        <div id="mystery-revealed-price" class="display" style="font-size: 26px; color: var(--prize-red);"></div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div style="display: flex; gap: 10px; justify-content: center;">
+      <button id="mystery-btn-unlock" class="big-cta" style="margin-top: 0; background: linear-gradient(135deg, var(--gold), #ff8c00); color: #000; box-shadow: 0 5px 0 #b38800; font-size: 17px; flex: 1;">💥 UNLOCK FATE!</button>
+      <button id="mystery-btn-claim" class="big-cta" style="margin-top: 0; background: var(--win-green); color: #000; box-shadow: 0 5px 0 #0b6b3c; font-size: 17px; flex: 1; display: none;">👑 CLAIM MEAL</button>
+    </div>
+  </div>
+</div>
+
+
 <!-- ================= INSTANT UPI PAYMENT QR CODE MODAL ================= -->
 <div id="upi-qr-modal" class="modal-backdrop" style="
   display: none;
@@ -1455,7 +1652,6 @@
     </div>
   </div>
 </div>
-
 
 
 <div class="status-pill" style="display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
@@ -5304,6 +5500,14 @@ if ($("#receipt-btn-close")) {
   });
 }
 
+if ($("#receipt-btn-thermal")) {
+  $("#receipt-btn-thermal").addEventListener("click", () => {
+    if (activeReceiptDetails && typeof generateThermalReceipt === "function") {
+      generateThermalReceipt(activeReceiptDetails);
+    }
+  });
+}
+
 if ($("#receipt-btn-upi")) {
   $("#receipt-btn-upi").addEventListener("click", () => {
     if (activeReceiptDetails && typeof openUpiModal === "function") {
@@ -6097,9 +6301,10 @@ function initUniversalAuthListener() {
 }
 
 // =========================================================================
-// ENGINES: HAPTICS & RETRO VOICE ANNOUNCER
+// NEW ENGINES: HAPTICS, RETRO ANNOUNCER, UPI QR, THERMAL RECEIPT & GAMES
 // =========================================================================
 
+// --- 1. Haptics Vibration Engine ---
 const Haptics = {
   tick() {
     if ("vibrate" in navigator) {
@@ -6123,6 +6328,7 @@ const Haptics = {
   }
 };
 
+// --- 2. Retro Arcade Voice Announcer ---
 let announcerEnabled = localStorage.getItem("ekvs_announcer") !== "off";
 
 function updateAnnouncerBadge() {
@@ -6161,7 +6367,7 @@ if ($("#announcer-toggle-btn")) {
 }
 updateAnnouncerBadge();
 
-// --- Banquet Combo Mode ---
+// --- 3. Banquet Combo Mode ---
 let isComboModeActive = false;
 if ($("#btn-toggle-combo")) {
   $("#btn-toggle-combo").addEventListener("click", () => {
@@ -6187,7 +6393,9 @@ if ($("#btn-toggle-combo")) {
       Haptics.tick();
     }
   });
-// --- Instant UPI Split QR Code Generator ---
+}
+
+// --- 4. Instant UPI Split QR Code Generator ---
 function openUpiModal(amount = 0, defaultNote = "Split for EKVS Meal", payee = "") {
   const modal = $("#upi-qr-modal");
   const container = $("#upi-qrcode-container");
@@ -6281,6 +6489,644 @@ if ($("#split-btn-upi")) {
     const paidBy = ($("#split-paid-by") && $("#split-paid-by").value) ? $("#split-paid-by").value : (SplitBillModal.lastWho || "Group");
     openUpiModal(perPerson, `Split meal for ${count} diners`, paidBy);
   });
+}
+
+// --- 5. Thermal Receipt Canvas Generator ---
+async function generateThermalReceipt(details) {
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  const width = 420;
+  const height = 580;
+  canvas.width = width;
+  canvas.height = height;
+
+  // Background - Off-white vintage thermal paper
+  ctx.fillStyle = "#F5F3EC";
+  ctx.fillRect(0, 0, width, height);
+
+  // Serrated jagged paper tear effect top and bottom
+  ctx.fillStyle = "#160424";
+  const teeth = 28;
+  const step = width / teeth;
+  ctx.beginPath();
+  for (let i = 0; i <= teeth; i++) {
+    ctx.lineTo(i * step, (i % 2 === 0) ? 0 : 8);
+  }
+  ctx.lineTo(width, 0);
+  ctx.lineTo(0, 0);
+  ctx.fill();
+
+  ctx.beginPath();
+  for (let i = 0; i <= teeth; i++) {
+    ctx.lineTo(i * step, height - ((i % 2 === 0) ? 0 : 8));
+  }
+  ctx.lineTo(width, height);
+  ctx.lineTo(0, height);
+  ctx.fill();
+
+  // Draw thermal receipt text
+  ctx.fillStyle = "#111111";
+  ctx.textAlign = "center";
+  ctx.font = "bold 20px 'Courier New', monospace";
+  ctx.fillText("*** EKVS FOOD DECIDER ***", width / 2, 45);
+
+  ctx.font = "13px 'Courier New', monospace";
+  ctx.fillText("ARCADE DINING PASS & EXPENSE LOG", width / 2, 65);
+  ctx.fillText("========================================", width / 2, 80);
+
+  ctx.textAlign = "left";
+  ctx.font = "13px 'Courier New', monospace";
+  const dateStr = new Date().toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
+  ctx.fillText(`DATE:     ${dateStr}`, 30, 110);
+  ctx.fillText(`ORDER ID: EKVS-${Math.floor(100000 + Math.random() * 900000)}`, 30, 130);
+  ctx.fillText(`PLACE:    ${(details.placeName || "Restaurant").substring(0, 24)}`, 30, 150);
+  if (details.area) ctx.fillText(`AREA:     ${details.area.substring(0, 24)}`, 30, 170);
+  ctx.fillText("----------------------------------------", 30, 195);
+
+  // Item Details
+  ctx.fillText(`MEAL:     ${(details.itemName || "Meal Combo").substring(0, 24)}`, 30, 220);
+  ctx.fillText(`DINERS:   ${details.people || 1} Person(s)`, 30, 240);
+  ctx.fillText(`PAID BY:  ${(details.paidBy || "Group").substring(0, 20)}`, 30, 260);
+
+  if (details.participants && details.participants.length > 0) {
+    ctx.fillText(`CREW:     ${details.participants.join(", ").substring(0, 26)}`, 30, 280);
+  }
+
+  ctx.fillText("----------------------------------------", 30, 310);
+  ctx.font = "bold 16px 'Courier New', monospace";
+  ctx.fillText(`TOTAL BILL:             ₹${details.amount || 0}`, 30, 340);
+  const perPerson = Math.round((details.amount || 0) / (details.people || 1));
+  ctx.fillText(`PER PERSON:             ₹${perPerson}`, 30, 365);
+
+  ctx.font = "13px 'Courier New', monospace";
+  ctx.fillText("========================================", 30, 395);
+
+  // Fake vintage barcode graphics
+  const barcodeY = 415;
+  const barcodeX = 50;
+  const barcodeW = width - 100;
+  ctx.fillStyle = "#111111";
+  for (let x = barcodeX; x < barcodeX + barcodeW; x += 4) {
+    const barThick = ((x * 13) % 7 < 3) ? 1.5 : 3;
+    ctx.fillRect(x, barcodeY, barThick, 45);
+  }
+
+  ctx.textAlign = "center";
+  ctx.font = "11px 'Courier New', monospace";
+  ctx.fillText("* EKVS-VERIFIED-DINING-PASS *", width / 2, 475);
+  ctx.fillText("DECIDED VIA EKVS FOOD DECIDER", width / 2, 495);
+  ctx.fillText("THANK YOU FOR DINING WITH US!", width / 2, 515);
+
+  // Red stamped seal "APPROVED & PAID" (tilted stamp)
+  ctx.save();
+  ctx.translate(width / 2 + 50, 280);
+  ctx.rotate(-0.18);
+  ctx.strokeStyle = "rgba(232, 17, 45, 0.75)";
+  ctx.lineWidth = 3;
+  ctx.strokeRect(-90, -22, 180, 44);
+  ctx.fillStyle = "rgba(232, 17, 45, 0.85)";
+  ctx.font = "bold 18px 'Courier New', monospace";
+  ctx.fillText("[ APPROVED & PAID ]", 0, 8);
+  ctx.restore();
+
+  // Convert canvas to Blob & trigger download / Web Share
+  canvas.toBlob(async (blob) => {
+    if (!blob) return;
+    const file = new File([blob], `EKVS-Receipt-${Date.now()}.png`, { type: "image/png" });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({
+          files: [file],
+          title: "EKVS Dining Receipt",
+          text: `Dining pass for ${details.itemName} @ ${details.placeName}`
+        });
+        return;
+      } catch(e) {}
+    }
+
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `EKVS-Receipt-${Date.now()}.png`;
+    a.click();
+    AudioFX.success();
+    Haptics.success();
+    Modal.alert("🧾 Thermal receipt downloaded! You can share it directly with friends.", "Receipt Saved");
+  });
+}
+
+// --- 6. Food Bracket Battle (Tournament Mode) ---
+let tournamentCurrentRound = [];
+let tournamentNextRound = [];
+let tournamentCurrentMatchIdx = 0;
+let tournamentStageName = "QUARTERFINALS";
+let tournamentTotalMatches = 0;
+let tournamentCompletedMatches = 0;
+
+function openTournamentModal() {
+  let pool = (currentSuggestions && currentSuggestions.length >= 4) ? [...currentSuggestions] : [...allSuggestionsCache];
+  if (!pool || pool.length < 2) {
+    if (itemsCache && itemsCache.length >= 4) {
+      pool = itemsCache.slice(0, 8).map(it => {
+        const place = (placesCache || []).find(p => p.id === it.place_id) || {};
+        return {
+          place_id: it.place_id,
+          place_name: place.name || "Restaurant",
+          area: place.area || "Local",
+          item_id: it.id,
+          item_name: it.name,
+          expected_amount: it.price,
+          price_per_person: it.price,
+          category: it.category
+        };
+      });
+    }
+  }
+
+  if (!pool || pool.length < 2) {
+    Modal.alert("Please click 'FIND MY MEAL' first to load candidates for the tournament!", "🥊 Tournament");
+    return;
+  }
+
+  const candidates = [...pool].sort(() => 0.5 - Math.random()).slice(0, pool.length >= 8 ? 8 : 4);
+  tournamentCurrentRound = [...candidates];
+  tournamentNextRound = [];
+  tournamentCurrentMatchIdx = 0;
+  tournamentCompletedMatches = 0;
+  tournamentTotalMatches = tournamentCurrentRound.length === 8 ? 7 : 3;
+
+  const modal = $("#food-tournament-modal");
+  if (!modal) return;
+  modal.style.display = "flex";
+  AudioFX.start();
+  Haptics.pulse();
+  Announcer.speak("Food Tournament initialized! Choose your champion!");
+  renderTournamentMatch();
+}
+
+function renderTournamentMatch() {
+  const arena = $("#tournament-arena");
+  const badge = $("#tournament-stage-badge");
+  const progRow = $("#tournament-progress-row");
+  if (!arena || !badge) return;
+
+  const remainingInRound = tournamentCurrentRound.length;
+  if (remainingInRound <= 1) {
+    if (tournamentNextRound.length === 1) {
+      crownTournamentChampion(tournamentNextRound[0]);
+      return;
+    }
+    tournamentCurrentRound = [...tournamentNextRound];
+    tournamentNextRound = [];
+    tournamentCurrentMatchIdx = 0;
+  }
+
+  const roundSize = tournamentCurrentRound.length;
+  if (roundSize === 8) tournamentStageName = "QUARTERFINALS";
+  else if (roundSize === 4) tournamentStageName = "SEMIFINALS";
+  else if (roundSize === 2) tournamentStageName = "CHAMPIONSHIP MATCH";
+
+  const matchNum = Math.floor(tournamentCurrentMatchIdx / 2) + 1;
+  const totalMatchesInRound = Math.max(1, roundSize / 2);
+  badge.textContent = `🥊 ${tournamentStageName} (Match ${matchNum}/${totalMatchesInRound})`;
+
+  const dishA = tournamentCurrentRound[tournamentCurrentMatchIdx];
+  const dishB = tournamentCurrentRound[tournamentCurrentMatchIdx + 1];
+
+  if (!dishA || !dishB) {
+    if (dishA) tournamentNextRound.push(dishA);
+    if (tournamentNextRound.length === 1 && tournamentCurrentRound.length <= 2) {
+      crownTournamentChampion(tournamentNextRound[0]);
+    } else {
+      tournamentCurrentRound = [...tournamentNextRound];
+      tournamentNextRound = [];
+      tournamentCurrentMatchIdx = 0;
+      renderTournamentMatch();
+    }
+    return;
+  }
+
+  arena.innerHTML = `
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <div id="match-card-a" class="ticket" style="
+        background:#fff; border:3px solid #000; border-radius:14px; padding:16px; cursor:pointer;
+        box-shadow:0 5px 0 #000; text-align:center; transition:transform 0.15s ease;
+      ">
+        <div style="font-size:32px;">🍲</div>
+        <div style="font-size:12px; font-weight:800; color:var(--deep-purple-2);">${escapeHTML(dishA.place_name)} (${escapeHTML(dishA.area || "Local")})</div>
+        <div class="display" style="font-size:22px; color:#1a0630; margin:4px 0;">${escapeHTML(dishA.item_name)}</div>
+        <div class="display" style="font-size:20px; color:var(--prize-red);">₹${dishA.expected_amount}</div>
+      </div>
+
+      <div class="display" style="font-size:22px; color:var(--gold); -webkit-text-stroke:1px #000; text-shadow:0 2px 4px #000;">⚡ VS ⚡</div>
+
+      <div id="match-card-b" class="ticket" style="
+        background:#fff; border:3px solid #000; border-radius:14px; padding:16px; cursor:pointer;
+        box-shadow:0 5px 0 #000; text-align:center; transition:transform 0.15s ease;
+      ">
+        <div style="font-size:32px;">🍗</div>
+        <div style="font-size:12px; font-weight:800; color:var(--deep-purple-2);">${escapeHTML(dishB.place_name)} (${escapeHTML(dishB.area || "Local")})</div>
+        <div class="display" style="font-size:22px; color:#1a0630; margin:4px 0;">${escapeHTML(dishB.item_name)}</div>
+        <div class="display" style="font-size:20px; color:var(--prize-red);">₹${dishB.expected_amount}</div>
+      </div>
+    </div>
+  `;
+
+  if (progRow) {
+    progRow.innerHTML = Array.from({ length: tournamentTotalMatches }).map((_, i) => {
+      const isDone = i < tournamentCompletedMatches;
+      const isCurr = i === tournamentCompletedMatches;
+      const bg = isDone ? "var(--win-green)" : isCurr ? "var(--gold)" : "rgba(255,255,255,0.2)";
+      return `<div style="width:12px; height:12px; border-radius:50%; background:${bg}; border:1.5px solid #000;"></div>`;
+    }).join("");
+  }
+
+  $("#match-card-a").addEventListener("click", () => pickTournamentWinner(dishA));
+  $("#match-card-b").addEventListener("click", () => pickTournamentWinner(dishB));
+}
+
+function pickTournamentWinner(winner) {
+  AudioFX.tick();
+  Haptics.tick();
+  tournamentNextRound.push(winner);
+  tournamentCurrentMatchIdx += 2;
+  tournamentCompletedMatches++;
+  renderTournamentMatch();
+}
+
+function crownTournamentChampion(champion) {
+  const arena = $("#tournament-arena");
+  const badge = $("#tournament-stage-badge");
+  if (!arena || !badge) return;
+
+  badge.textContent = "🏆 TOURNAMENT COMPLETE!";
+  badge.style.background = "var(--win-green)";
+  AudioFX.success();
+  Haptics.success();
+  if (window.confetti) {
+    confetti({ particleCount: 140, spread: 80, origin: { y: 0.6 } });
+  }
+  Announcer.speak(`Tournament Champion: ${champion.item_name} at ${champion.place_name}!`);
+
+  arena.innerHTML = `
+    <div style="background:#fff; border:4px solid #000; border-radius:18px; padding:20px 16px; box-shadow:0 6px 0 #000;">
+      <div style="font-size:52px; margin-bottom:8px;">👑</div>
+      <div style="font-size:13px; font-weight:800; color:var(--deep-purple-2); letter-spacing:1px;">UNDISPUTED CROWD WINNER</div>
+      <div class="display" style="font-size:26px; color:#1a0630; margin:6px 0;">${escapeHTML(champion.item_name)}</div>
+      <div style="font-size:15px; font-weight:800; color:#555;">@ ${escapeHTML(champion.place_name)} (${escapeHTML(champion.area || "Local")})</div>
+      <div class="display" style="font-size:28px; color:var(--prize-red); margin:8px 0;">₹${champion.expected_amount}</div>
+      <button id="tournament-btn-claim-winner" class="big-cta" style="background:var(--win-green); color:#000; box-shadow:0 5px 0 #0b6b3c; margin-top:12px;">👑 LOCK & CLAIM THIS MEAL</button>
+    </div>
+  `;
+
+  $("#tournament-btn-claim-winner").addEventListener("click", () => {
+    $("#food-tournament-modal").style.display = "none";
+    revealedSuggestions = [champion];
+    activeRevealedIndex = 0;
+    const people = parseInt($("#in-people").value) || 1;
+    renderSuggestionCard(people);
+    const det = $("#item-details-container");
+    if (det) det.style.display = "block";
+    const prompt = $("#click-prompt");
+    if (prompt) prompt.style.display = "none";
+    AudioFX.success();
+    Haptics.success();
+  });
+}
+
+if ($("#tournament-btn-close")) {
+  $("#tournament-btn-close").addEventListener("click", () => {
+    $("#food-tournament-modal").style.display = "none";
+  });
+}
+if ($("#btn-open-tournament")) {
+  $("#btn-open-tournament").addEventListener("click", openTournamentModal);
+}
+
+// --- 7. Finger Roulette ("Who Pays the Bill?") ---
+let rouletteFingers = new Map();
+let rouletteCountdownTimer = null;
+let rouletteCountdownVal = 3;
+const rouletteColors = ["#00d2ff", "#FFD447", "#FF2E9F", "#17D97A", "#b388ff", "#FF8C00"];
+
+function openFingerRouletteModal() {
+  const modal = $("#finger-roulette-modal");
+  if (!modal) return;
+  modal.style.display = "flex";
+  resetRoulette();
+  AudioFX.start();
+  Haptics.pulse();
+  Announcer.speak("Finger Roulette ready! Everyone place your fingers on the screen!");
+}
+
+function resetRoulette() {
+  if (rouletteCountdownTimer) clearInterval(rouletteCountdownTimer);
+  rouletteCountdownTimer = null;
+  rouletteCountdownVal = 3;
+  rouletteFingers.clear();
+
+  const overlay = $("#roulette-status-overlay");
+  const msg = $("#roulette-result-msg");
+  const num = $("#roulette-countdown-num");
+  const markers = $("#roulette-touch-markers");
+  const countDisplay = $("#roulette-finger-count");
+  const guide = $("#roulette-guide-text");
+
+  if (overlay) overlay.style.display = "none";
+  if (msg) msg.style.display = "none";
+  if (num) {
+    num.style.display = "block";
+    num.textContent = "3";
+  }
+  if (markers) markers.innerHTML = "";
+  if (countDisplay) countDisplay.textContent = "0 Fingers Detected";
+  if (guide) guide.style.display = "block";
+}
+
+function updateRouletteMarkers() {
+  const markers = $("#roulette-touch-markers");
+  const countDisplay = $("#roulette-finger-count");
+  const guide = $("#roulette-guide-text");
+  if (!markers) return;
+
+  markers.innerHTML = "";
+  let idx = 0;
+  rouletteFingers.forEach((f) => {
+    const marker = document.createElement("div");
+    marker.style.cssText = `
+      position: absolute;
+      left: ${f.x}px;
+      top: ${f.y}px;
+      width: 72px;
+      height: 72px;
+      margin-left: -36px;
+      margin-top: -36px;
+      border-radius: 50%;
+      border: 4px solid ${f.color};
+      background: radial-gradient(circle, ${f.color}66, transparent);
+      box-shadow: 0 0 20px ${f.color}, inset 0 0 15px ${f.color};
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 13px;
+    `;
+    marker.textContent = f.name || `P${idx + 1}`;
+    markers.appendChild(marker);
+    idx++;
+  });
+
+  const count = rouletteFingers.size;
+  if (countDisplay) {
+    countDisplay.textContent = `${count} Finger${count === 1 ? "" : "s"} Detected`;
+    countDisplay.style.color = count >= 2 ? "var(--win-green)" : "var(--gold)";
+  }
+
+  if (count >= 2 && !rouletteCountdownTimer) {
+    startRouletteCountdown();
+  } else if (count < 2 && rouletteCountdownTimer) {
+    resetRoulette();
+  }
+}
+
+function startRouletteCountdown() {
+  const overlay = $("#roulette-status-overlay");
+  const num = $("#roulette-countdown-num");
+  const guide = $("#roulette-guide-text");
+  if (!overlay || !num) return;
+
+  if (guide) guide.style.display = "none";
+  overlay.style.display = "block";
+  rouletteCountdownVal = 3;
+  num.textContent = "3";
+  AudioFX.tick();
+  Haptics.tick();
+
+  rouletteCountdownTimer = setInterval(() => {
+    rouletteCountdownVal--;
+    if (rouletteCountdownVal > 0) {
+      num.textContent = String(rouletteCountdownVal);
+      AudioFX.tick();
+      Haptics.tick();
+    } else {
+      clearInterval(rouletteCountdownTimer);
+      rouletteCountdownTimer = null;
+      strikeRouletteLightning();
+    }
+  }, 900);
+}
+
+function strikeRouletteLightning() {
+  const num = $("#roulette-countdown-num");
+  const msg = $("#roulette-result-msg");
+  if (!msg || !num) return;
+
+  const entries = Array.from(rouletteFingers.entries());
+  if (entries.length === 0) return;
+
+  const [, chosenData] = entries[Math.floor(Math.random() * entries.length)];
+
+  num.style.display = "none";
+  msg.style.display = "block";
+  msg.innerHTML = `⚡ <span style="color:${chosenData.color}; font-weight:800;">${escapeHTML(chosenData.name || "PLAYER")}</span> PAYS THE BILL! 💸`;
+
+  AudioFX.success();
+  Haptics.lightning();
+  if (window.confetti) {
+    confetti({ particleCount: 160, spread: 90, origin: { y: 0.5 } });
+  }
+  Announcer.speak(`Boom! ${chosenData.name || "Player"} pays the bill! Break out the wallet!`);
+}
+
+const rouletteSurface = $("#roulette-touch-surface");
+if (rouletteSurface) {
+  function getSurfaceRelativeCoords(touch) {
+    const rect = rouletteSurface.getBoundingClientRect();
+    return {
+      x: touch.clientX - rect.left,
+      y: touch.clientY - rect.top
+    };
+  }
+
+  rouletteSurface.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    Array.from(e.changedTouches).forEach((t) => {
+      const coords = getSurfaceRelativeCoords(t);
+      const color = rouletteColors[rouletteFingers.size % rouletteColors.length];
+      const profiles = (userProfiles && userProfiles.length > 0) ? userProfiles : ["MegaTron", "Alex", "Sam", "Diner"];
+      const name = profiles[rouletteFingers.size % profiles.length];
+      rouletteFingers.set(t.identifier, { x: coords.x, y: coords.y, color, name });
+    });
+    updateRouletteMarkers();
+    Haptics.tick();
+  }, { passive: false });
+
+  rouletteSurface.addEventListener("touchmove", (e) => {
+    e.preventDefault();
+    Array.from(e.changedTouches).forEach((t) => {
+      if (rouletteFingers.has(t.identifier)) {
+        const coords = getSurfaceRelativeCoords(t);
+        const f = rouletteFingers.get(t.identifier);
+        f.x = coords.x;
+        f.y = coords.y;
+      }
+    });
+    updateRouletteMarkers();
+  }, { passive: false });
+
+  rouletteSurface.addEventListener("touchend", (e) => {
+    e.preventDefault();
+    Array.from(e.changedTouches).forEach((t) => {
+      rouletteFingers.delete(t.identifier);
+    });
+    updateRouletteMarkers();
+  }, { passive: false });
+
+  rouletteSurface.addEventListener("touchcancel", (e) => {
+    e.preventDefault();
+    Array.from(e.changedTouches).forEach((t) => {
+      rouletteFingers.delete(t.identifier);
+    });
+    updateRouletteMarkers();
+  }, { passive: false });
+}
+
+if ($("#roulette-btn-sim")) {
+  $("#roulette-btn-sim").addEventListener("click", () => {
+    resetRoulette();
+    const rect = rouletteSurface ? rouletteSurface.getBoundingClientRect() : { width: 320, height: 260 };
+    const w = rect.width || 320;
+    const h = rect.height || 260;
+
+    const names = (userProfiles && userProfiles.length >= 3) ? userProfiles.slice(0, 3) : ["MegaTron", "Razin", "Friend"];
+    rouletteFingers.set("sim1", { x: w * 0.25, y: h * 0.35, color: rouletteColors[0], name: names[0] });
+    rouletteFingers.set("sim2", { x: w * 0.75, y: h * 0.35, color: rouletteColors[1], name: names[1] });
+    rouletteFingers.set("sim3", { x: w * 0.50, y: h * 0.70, color: rouletteColors[2], name: names[2] });
+    updateRouletteMarkers();
+    AudioFX.click();
+    Haptics.pulse();
+  });
+}
+
+if ($("#roulette-btn-reset")) {
+  $("#roulette-btn-reset").addEventListener("click", () => {
+    resetRoulette();
+    AudioFX.click();
+  });
+}
+
+if ($("#roulette-btn-close")) {
+  $("#roulette-btn-close").addEventListener("click", () => {
+    resetRoulette();
+    $("#finger-roulette-modal").style.display = "none";
+  });
+}
+
+if ($("#btn-open-roulette")) {
+  $("#btn-open-roulette").addEventListener("click", openFingerRouletteModal);
+}
+
+// --- 8. Blind Mystery Box ("I'm Feeling Lucky") ---
+let mysteryCandidate = null;
+
+function openMysteryBoxModal() {
+  let pool = (currentSuggestions && currentSuggestions.length > 0) ? currentSuggestions : allSuggestionsCache;
+  if (!pool || pool.length === 0) {
+    Modal.alert("Please click 'FIND MY MEAL' first to load meals, then open the Mystery Box!", "🎁 Mystery Box");
+    return;
+  }
+
+  mysteryCandidate = pool[Math.floor(Math.random() * Math.min(pool.length, 6))];
+
+  const modal = $("#mystery-box-modal");
+  const icon = $("#mystery-box-icon");
+  const priceClue = $("#mystery-clue-price");
+  const areaClue = $("#mystery-clue-area");
+  const tagsClue = $("#mystery-clue-tags");
+  const revealedBox = $("#mystery-revealed-content");
+  const cluesBox = $("#mystery-clues");
+  const unlockBtn = $("#mystery-btn-unlock");
+  const claimBtn = $("#mystery-btn-claim");
+
+  if (!modal) return;
+
+  icon.textContent = "📦❓";
+  priceClue.textContent = `₹${mysteryCandidate.expected_amount} (₹${mysteryCandidate.price_per_person}/ea)`;
+  areaClue.textContent = mysteryCandidate.area ? mysteryCandidate.area.toUpperCase() : "SECRET SPOT";
+  tagsClue.textContent = mysteryCandidate.category ? `🏷️ ${mysteryCandidate.category.toUpperCase()}` : "Delicious Mystery";
+
+  revealedBox.style.display = "none";
+  cluesBox.style.display = "flex";
+  unlockBtn.style.display = "block";
+  claimBtn.style.display = "none";
+
+  modal.style.display = "flex";
+  AudioFX.start();
+  Haptics.tick();
+  Announcer.speak("Mystery Box ready. Dare to unlock fate?");
+}
+
+if ($("#mystery-btn-unlock")) {
+  $("#mystery-btn-unlock").addEventListener("click", () => {
+    if (!mysteryCandidate) return;
+    const icon = $("#mystery-box-icon");
+    const cluesBox = $("#mystery-clues");
+    const revealedBox = $("#mystery-revealed-content");
+    const unlockBtn = $("#mystery-btn-unlock");
+    const claimBtn = $("#mystery-btn-claim");
+
+    icon.textContent = "💥📦💥";
+    AudioFX.tick();
+    Haptics.lightning();
+
+    setTimeout(() => {
+      icon.textContent = "🎉🍽️🎉";
+      cluesBox.style.display = "none";
+      revealedBox.style.display = "block";
+      $("#mystery-revealed-dish").textContent = mysteryCandidate.item_name;
+      $("#mystery-revealed-place").textContent = `@ ${mysteryCandidate.place_name} (${mysteryCandidate.area || "Local"})`;
+      $("#mystery-revealed-price").textContent = `₹${mysteryCandidate.expected_amount}`;
+
+      unlockBtn.style.display = "none";
+      claimBtn.style.display = "block";
+
+      AudioFX.success();
+      Haptics.success();
+      if (window.confetti) {
+        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+      }
+      Announcer.speak(`Mystery Unsealed! You are having ${mysteryCandidate.item_name} at ${mysteryCandidate.place_name}!`);
+    }, 600);
+  });
+}
+
+if ($("#mystery-btn-claim")) {
+  $("#mystery-btn-claim").addEventListener("click", () => {
+    if (!mysteryCandidate) return;
+    $("#mystery-box-modal").style.display = "none";
+    revealedSuggestions = [mysteryCandidate];
+    activeRevealedIndex = 0;
+    const people = parseInt($("#in-people").value) || 1;
+    renderSuggestionCard(people);
+    const det = $("#item-details-container");
+    if (det) det.style.display = "block";
+    const prompt = $("#click-prompt");
+    if (prompt) prompt.style.display = "none";
+    AudioFX.success();
+    Haptics.success();
+  });
+}
+
+if ($("#mystery-btn-close")) {
+  $("#mystery-btn-close").addEventListener("click", () => {
+    $("#mystery-box-modal").style.display = "none";
+  });
+}
+
+if ($("#btn-open-mystery")) {
+  $("#btn-open-mystery").addEventListener("click", openMysteryBoxModal);
 }
 
 // Initialize Search & Contingency Protocol
