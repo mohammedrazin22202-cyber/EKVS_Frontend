@@ -444,6 +444,7 @@
   <span id="weather-badge" class="badge" style="background:#00d2ff; color:#000; margin-left: 6px; cursor:pointer;" title="Live Weather (Click to toggle weather recommendations)">🌤️ Loading Weather...</span>
   <span id="time-badge" class="badge" style="background:var(--win-green); color:#000; margin-left: 6px; cursor:pointer;" title="Current meal time slot">🕒 Auto (Slot)</span>
   <span id="sound-toggle-btn" class="badge" style="background:var(--gold); color:#000; margin-left: 6px; cursor:pointer;" title="Toggle sound effects">🔊 Sound: ON</span>
+  <span id="announcer-toggle-btn" class="badge" style="background:#b388ff; color:#000; margin-left: 6px; cursor:pointer;" title="Toggle arcade voice announcer">🗣️ Announcer: ON</span>
   <span id="pwa-install-badge" class="badge" style="background:var(--hot-pink); color:#fff; margin-left: 6px; cursor:pointer; display:none;" title="Install EKVS App">📲 Install App</span>
   <h1 class="title">EKVS FOOD DECIDER</h1>
   <p class="subtitle">Enter your budget and preferences below, and let EKVS recommend the perfect meal for your group.</p>
@@ -6019,6 +6020,71 @@ function initUniversalAuthListener() {
     }
   }, true);
 }
+
+// =========================================================================
+// ENGINES: HAPTICS & RETRO VOICE ANNOUNCER
+// =========================================================================
+
+const Haptics = {
+  tick() {
+    if ("vibrate" in navigator) {
+      try { navigator.vibrate(25); } catch(e){}
+    }
+  },
+  pulse() {
+    if ("vibrate" in navigator) {
+      try { navigator.vibrate(55); } catch(e){}
+    }
+  },
+  success() {
+    if ("vibrate" in navigator) {
+      try { navigator.vibrate([40, 50, 80]); } catch(e){}
+    }
+  },
+  lightning() {
+    if ("vibrate" in navigator) {
+      try { navigator.vibrate([120, 50, 120, 50, 250]); } catch(e){}
+    }
+  }
+};
+
+let announcerEnabled = localStorage.getItem("ekvs_announcer") !== "off";
+
+function updateAnnouncerBadge() {
+  const badge = $("#announcer-toggle-btn");
+  if (!badge) return;
+  badge.textContent = announcerEnabled ? "🗣️ Announcer: ON" : "🔇 Announcer: OFF";
+  badge.style.background = announcerEnabled ? "#b388ff" : "#555";
+  badge.style.color = announcerEnabled ? "#000" : "#fff";
+}
+
+const Announcer = {
+  speak(text) {
+    if (!announcerEnabled) return;
+    if (!("speechSynthesis" in window)) return;
+    try {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate = 1.05;
+      u.pitch = 1.15;
+      window.speechSynthesis.speak(u);
+    } catch(e) {}
+  }
+};
+
+if ($("#announcer-toggle-btn")) {
+  $("#announcer-toggle-btn").addEventListener("click", () => {
+    announcerEnabled = !announcerEnabled;
+    localStorage.setItem("ekvs_announcer", announcerEnabled ? "on" : "off");
+    updateAnnouncerBadge();
+    AudioFX.click();
+    Haptics.tick();
+    if (announcerEnabled) {
+      Announcer.speak("Arcade announcer online!");
+    }
+  });
+}
+updateAnnouncerBadge();
 
 // Initialize Search & Contingency Protocol
 initGlobalSearch();
