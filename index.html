@@ -585,7 +585,14 @@
       <label>✏️ Additional Info</label>
       <textarea id="in-notes" placeholder="e.g. rainy day, want something quick, near hostel..."></textarea>
 
-      <div style="display: flex; gap: 10px; margin-top: 15px; align-items: stretch;">
+      <div style="display: flex; gap: 8px; align-items: center; margin: 8px 0 10px;">
+        <button type="button" id="btn-toggle-combo" style="flex: 1; background: #fff; color: #1a0630; border: 2.5px solid #000; border-radius: 10px; padding: 7px 12px; font-weight: 800; cursor: pointer; font-family: 'Baloo 2', sans-serif; font-size: 13px; box-shadow: 0 2.5px 0 #000; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.15s ease;">
+          <span>🍱 Feast Combo Mode:</span>
+          <span id="combo-mode-status" style="background: rgba(0,0,0,0.1); padding: 2px 8px; border-radius: 6px;">OFF</span>
+        </button>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-top: 10px; align-items: stretch;">
         <button class="big-cta" id="btn-suggest" style="flex: 2; margin-top: 0;">🔮 FIND MY MEAL</button>
         <button class="big-cta" id="btn-voice-search" style="flex: 0 0 52px; background: #00d2ff; color:#000; box-shadow: 0 5px 0 #0095b6; margin-top: 0; font-size: 22px; padding: 0; display: flex; align-items: center; justify-content: center;" title="Voice Assistant ('Tell me what to eat')">🎙️</button>
         <button class="big-cta" id="btn-create-poll" style="flex: 1.5; background: var(--hot-pink); box-shadow: 0 6px 0 #8c0a4d; margin-top: 0; color: #fff;">🗳️ CREATE POLL</button>
@@ -2605,7 +2612,7 @@ $("#btn-suggest").addEventListener("click", async ()=>{
     const r = await fetch(API+"/api/suggest", {
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({budget: effectiveBudget, people, preference, additional_info, area, variety, who, concurrency_control, count:40, dislikes, time_of_day})
+      body: JSON.stringify({budget: effectiveBudget, people, preference, additional_info, area, variety, who, concurrency_control, count:40, dislikes, time_of_day, combo_mode: (typeof isComboModeActive !== 'undefined' ? isComboModeActive : false)})
     });
     const data = await r.json();
 
@@ -6085,6 +6092,34 @@ if ($("#announcer-toggle-btn")) {
   });
 }
 updateAnnouncerBadge();
+
+// --- Banquet Combo Mode ---
+let isComboModeActive = false;
+if ($("#btn-toggle-combo")) {
+  $("#btn-toggle-combo").addEventListener("click", () => {
+    isComboModeActive = !isComboModeActive;
+    const status = $("#combo-mode-status");
+    const btn = $("#btn-toggle-combo");
+    if (isComboModeActive) {
+      status.textContent = "ON 🌟";
+      status.style.background = "var(--gold)";
+      status.style.color = "#000";
+      btn.style.background = "var(--cream)";
+      btn.style.borderColor = "var(--gold)";
+      AudioFX.success();
+      Haptics.pulse();
+      Announcer.speak("Feast Combo Mode activated! Prioritizing full banquets!");
+    } else {
+      status.textContent = "OFF";
+      status.style.background = "rgba(0,0,0,0.1)";
+      status.style.color = "#000";
+      btn.style.background = "#fff";
+      btn.style.borderColor = "#000";
+      AudioFX.tick();
+      Haptics.tick();
+    }
+  });
+}
 
 // Initialize Search & Contingency Protocol
 initGlobalSearch();
