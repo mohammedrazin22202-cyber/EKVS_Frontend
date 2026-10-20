@@ -1,9 +1,10 @@
 // EKVS Food Decider - Service Worker for Offline Caching & PWA
-const CACHE_NAME = "ekvs-cache-v3";
+const CACHE_NAME = "ekvs-cache-v4";
 const STATIC_ASSETS = [
   "./",
   "./index.html",
   "./config.js",
+  "./slogans.js",
   "./logo.png",
   "./manifest.json",
   "https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Baloo+2:wght@500;700;800&display=swap",
