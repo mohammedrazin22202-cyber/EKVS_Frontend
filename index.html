@@ -639,6 +639,7 @@
       box-shadow: 0 3px 0 #000;
     }
   }
+
 </style>
 </head>
 <body>
@@ -676,6 +677,7 @@
     </div>
   </div>
 </div>
+
 <header class="hero">
   <img src="./logo.png" alt="EKVS Logo" style="max-height: 120px; width: auto; margin-bottom: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);" />
   <br/>
@@ -7373,6 +7375,203 @@ initGlobalSearch();
 initClaimSearch();
 initManageSearch();
 initUniversalAuthListener();
+
+// ---------------------------------------------------------
+// Top Right Live Clock & 300+ Hourly Slogans Controller
+// ---------------------------------------------------------
+function initTopClockAndSlogan() {
+  const timeEl = $("#ekvs-clock-time");
+  const ampmEl = $("#ekvs-clock-ampm");
+  const dateEl = $("#ekvs-clock-date");
+  const pillEl = $("#ekvs-clock-pill");
+  const sloganEl = $("#ekvs-slogan-text");
+  const sloganWrap = $("#ekvs-slogan-wrap");
+  const subtextEl = $("#ekvs-slogan-subtext");
+  const countEl = $("#ekvs-slogan-count");
+  const peekBtn = $("#btn-peek-slogan");
+  const minBtn = $("#btn-minimize-widget");
+  const widgetBody = $("#ekvs-widget-body");
+  const widget = $("#ekvs-top-widget");
+
+  if (!timeEl || !sloganEl) return;
+
+  // 1. Clock Format Preference (12h vs 24h)
+  let is24Hour = localStorage.getItem("ekvs_clock_24h") === "true";
+  let previewTimeout = null;
+  let previewOffset = null; // null means synced to live hour
+  let lastHourEpoch = null;
+
+  function getSlogansList() {
+    if (window.EKVS_SLOGANS && Array.isArray(window.EKVS_SLOGANS) && window.EKVS_SLOGANS.length >= 300) {
+      return window.EKVS_SLOGANS;
+    }
+    return [
+      "Stop scrolling, start chewing!",
+      "Deciding what to eat shouldn't feel like a final exam.",
+      "Your stomach called: it wants an answer right now.",
+      "Because 'Whatever' is not a restaurant on the menu.",
+      "Hungry and indecisive? EKVS has your back!"
+    ];
+  }
+
+  function updateClockDisplay() {
+    const now = new Date();
+    
+    // Time formatting
+    let hours = now.getHours();
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+    const seconds = String(now.getSeconds()).padStart(2, "0");
+    let ampm = "";
+
+    if (is24Hour) {
+      timeEl.textContent = `${String(hours).padStart(2, "0")}:${minutes}:${seconds}`;
+      if (ampmEl) ampmEl.textContent = "";
+    } else {
+      ampm = hours >= 12 ? "PM" : "AM";
+      hours = hours % 12 || 12;
+      timeEl.textContent = `${String(hours).padStart(2, "0")}:${minutes}:${seconds}`;
+      if (ampmEl) ampmEl.textContent = ampm;
+    }
+
+    // Date formatting (e.g. "Tue, Oct 20")
+    if (dateEl) {
+      const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      dateEl.textContent = `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}`;
+    }
+
+    // Check hourly rollover
+    const currentHourEpoch = Math.floor(Date.now() / (1000 * 60 * 60));
+    if (lastHourEpoch === null || lastHourEpoch !== currentHourEpoch) {
+      lastHourEpoch = currentHourEpoch;
+      // If user isn't actively previewing, update to new hourly slogan
+      if (previewOffset === null) {
+        renderSlogan(false);
+      }
+    }
+
+    // Update remaining minutes in current hour
+    if (subtextEl && previewOffset === null) {
+      const minsRemaining = 60 - now.getMinutes();
+      const list = getSlogansList();
+      const currentIdx = (Math.abs(currentHourEpoch) % list.length) + 1;
+      subtextEl.textContent = `⏳ Slogan #${currentIdx} • Changes in ${minsRemaining}m`;
+    }
+  }
+
+  function renderSlogan(isUserPreview = false) {
+    const list = getSlogansList();
+    const currentHourEpoch = Math.floor(Date.now() / (1000 * 60 * 60));
+    
+    let targetIndex;
+    if (previewOffset !== null) {
+      targetIndex = Math.abs(currentHourEpoch + previewOffset) % list.length;
+    } else {
+      targetIndex = Math.abs(currentHourEpoch) % list.length;
+    }
+
+    const slogan = list[targetIndex] || list[0];
+
+    // Smooth transition
+    sloganEl.classList.add("fade-swap");
+    setTimeout(() => {
+      sloganEl.textContent = `"${slogan}"`;
+      sloganEl.classList.remove("fade-swap");
+    }, 200);
+
+    if (countEl) {
+      countEl.textContent = `${list.length} slogans`;
+    }
+
+    if (subtextEl) {
+      if (previewOffset !== null) {
+        subtextEl.textContent = `🎲 Previewing #${targetIndex + 1} • Auto-resets in 15s`;
+      } else {
+        const now = new Date();
+        const minsRemaining = 60 - now.getMinutes();
+        subtextEl.textContent = `⏳ Slogan #${targetIndex + 1} • Changes in ${minsRemaining}m`;
+      }
+    }
+  }
+
+  function peekNextSlogan() {
+    const list = getSlogansList();
+    if (previewOffset === null) previewOffset = 1;
+    else previewOffset = (previewOffset + 1) % list.length;
+
+    renderSlogan(true);
+    if (window.AudioFX && typeof AudioFX.click === "function") {
+      AudioFX.click();
+    }
+
+    if (previewTimeout) clearTimeout(previewTimeout);
+    previewTimeout = setTimeout(() => {
+      previewOffset = null;
+      renderSlogan(false);
+    }, 15000); // Reset back to synchronized hourly slogan after 15 seconds
+  }
+
+  // Toggle 12h / 24h
+  if (pillEl) {
+    pillEl.addEventListener("click", () => {
+      is24Hour = !is24Hour;
+      localStorage.setItem("ekvs_clock_24h", String(is24Hour));
+      updateClockDisplay();
+      if (window.AudioFX && typeof AudioFX.click === "function") {
+        AudioFX.click();
+      }
+    });
+  }
+
+  // Peek/shuffle buttons
+  if (peekBtn) {
+    peekBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      peekNextSlogan();
+    });
+  }
+  if (sloganWrap) {
+    sloganWrap.addEventListener("click", () => {
+      peekNextSlogan();
+    });
+  }
+
+  // Minimize / Expand toggle
+  let isMinimized = localStorage.getItem("ekvs_widget_minimized") === "true";
+  function updateMinState() {
+    if (widgetBody) {
+      widgetBody.style.display = isMinimized ? "none" : "block";
+    }
+    if (minBtn) {
+      minBtn.textContent = isMinimized ? "+" : "−";
+      minBtn.title = isMinimized ? "Expand slogan & info" : "Minimize to clock only";
+    }
+    if (widget) {
+      if (isMinimized) widget.classList.add("minimized");
+      else widget.classList.remove("minimized");
+    }
+  }
+  if (minBtn) {
+    minBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      isMinimized = !isMinimized;
+      localStorage.setItem("ekvs_widget_minimized", String(isMinimized));
+      updateMinState();
+      if (window.AudioFX && typeof AudioFX.click === "function") {
+        AudioFX.click();
+      }
+    });
+  }
+  updateMinState();
+
+  // Run initial clock and start interval
+  updateClockDisplay();
+  renderSlogan(false);
+  setInterval(updateClockDisplay, 1000);
+}
+
+initTopClockAndSlogan();
+
 </script>
 
 </body>
