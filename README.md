@@ -30,6 +30,9 @@ Your frontend will be instantly live on a fast global Vercel CDN URL (e.g., `htt
 
 ## ✨ Features Highlight
 
+- **Top-Right Live Clock HUD:** Real-time digital clock updating every second, with quick click/keyboard toggle between 12-hour (AM/PM) and 24-hour formats, current date display, and minimizable neo-brutalist widget design.
+- **300+ Curated Hourly Slogans:** Rotating collection of 330 unique, witty food & meal decision slogans synchronized to the epoch hour, complete with a live countdown timer until the next rotation, interactive peek/shuffle (`🎲`) controls, and accessible `aria-live` screen-reader support.
+- **Offline PWA & Service Worker Caching:** Fully progressive web app with pre-cached slogans, offline assets, and app manifest for homescreen installation.
 - **Retro Synth Audio FX:** Dynamically synthesized retro sound effects using the Web Audio API for interactive clicks, rolling reels, and successes.
 - **Local User Profiles:** Manage user dining profiles directly in the browser using `localStorage`.
 - **Group Dining Polls:** Real-time synchronized room polls using MongoDB backend connection.
