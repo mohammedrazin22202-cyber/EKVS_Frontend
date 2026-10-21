@@ -488,6 +488,13 @@
   .top-widget-clock-pill:active {
     transform: scale(0.97);
   }
+  .top-widget-clock-pill:focus-visible,
+  .top-widget-slogan-wrap:focus-visible,
+  .btn-widget-toggle:focus-visible,
+  .btn-slogan-peek:focus-visible {
+    outline: 2px dashed var(--gold);
+    outline-offset: 2px;
+  }
   .clock-icon {
     font-size: 13px;
     line-height: 1;
@@ -651,7 +658,7 @@
 <!-- Top Right Live Clock & Hourly Slogan Widget -->
 <div id="ekvs-top-widget" class="ekvs-top-widget" role="region" aria-label="Clock and Hourly Slogan">
   <div class="top-widget-header">
-    <div class="top-widget-clock-pill" id="ekvs-clock-pill" title="Click to toggle 12-hour / 24-hour format">
+    <div class="top-widget-clock-pill" id="ekvs-clock-pill" role="button" tabindex="0" title="Click or press Enter to toggle 12h/24h format" aria-label="Toggle 12 or 24 hour clock format">
       <span class="clock-icon">🕒</span>
       <span id="ekvs-clock-time" class="clock-digits">--:--:--</span>
       <span id="ekvs-clock-ampm" class="clock-ampm"></span>
@@ -663,10 +670,10 @@
   </div>
 
   <div class="top-widget-body" id="ekvs-widget-body">
-    <div class="top-widget-slogan-wrap" id="ekvs-slogan-wrap" title="Click to peek next slogan (300+ available!)">
+    <div class="top-widget-slogan-wrap" id="ekvs-slogan-wrap" role="button" tabindex="0" title="Click or press Enter to peek next slogan (300+ available!)" aria-label="Peek next slogan from collection">
       <span class="slogan-sparkle">✨</span>
       <div class="slogan-content">
-        <span id="ekvs-slogan-text" class="slogan-text">"Loading delicious hourly slogan..."</span>
+        <span id="ekvs-slogan-text" class="slogan-text" aria-live="polite">"Loading delicious hourly slogan..."</span>
       </div>
       <button id="btn-peek-slogan" class="btn-slogan-peek" title="Shuffle / Preview another slogan" type="button">🎲</button>
     </div>
@@ -7512,13 +7519,21 @@ function initTopClockAndSlogan() {
   }
 
   // Toggle 12h / 24h
+  function toggleClockFormat() {
+    is24Hour = !is24Hour;
+    localStorage.setItem("ekvs_clock_24h", String(is24Hour));
+    updateClockDisplay();
+    if (window.AudioFX && typeof AudioFX.click === "function") {
+      AudioFX.click();
+    }
+  }
+
   if (pillEl) {
-    pillEl.addEventListener("click", () => {
-      is24Hour = !is24Hour;
-      localStorage.setItem("ekvs_clock_24h", String(is24Hour));
-      updateClockDisplay();
-      if (window.AudioFX && typeof AudioFX.click === "function") {
-        AudioFX.click();
+    pillEl.addEventListener("click", toggleClockFormat);
+    pillEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        toggleClockFormat();
       }
     });
   }
@@ -7533,6 +7548,12 @@ function initTopClockAndSlogan() {
   if (sloganWrap) {
     sloganWrap.addEventListener("click", () => {
       peekNextSlogan();
+    });
+    sloganWrap.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        peekNextSlogan();
+      }
     });
   }
 
